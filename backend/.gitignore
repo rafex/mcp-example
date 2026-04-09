@@ -1,0 +1,7 @@
+# Basura operativa de backends
+dist/
+out/
+
+# Cobertura o reportes locales que podrían aparecer en ejemplos futuros
+coverage/
+htmlcov/

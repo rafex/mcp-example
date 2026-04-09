@@ -1,0 +1,14 @@
+# Sistema operativo
+.DS_Store
+
+# Editores
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs y temporales globales
+*.log
+*.tmp
+*.temp

@@ -1,0 +1,285 @@
+import java.io.BufferedInputStream;
+import java.io.EOFException;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+public final class HelloMcpServer {
+    private static final String PROTOCOL_VERSION = "2024-11-05";
+
+    private HelloMcpServer() {
+    }
+
+    public static void main(String[] args) throws IOException {
+        BufferedInputStream input = new BufferedInputStream(System.in);
+        while (true) {
+            String message = readMessage(input);
+            if (message == null) {
+                return;
+            }
+            String response = handleRequest(message);
+            if (response != null) {
+                writeMessage(response);
+            }
+        }
+    }
+
+    private static String readMessage(BufferedInputStream input) throws IOException {
+        Integer contentLength = null;
+        while (true) {
+            String line = readHeaderLine(input);
+            if (line == null) {
+                return null;
+            }
+            if (line.isEmpty()) {
+                break;
+            }
+            String lower = line.toLowerCase();
+            if (lower.startsWith("content-length:")) {
+                contentLength = Integer.parseInt(line.substring(line.indexOf(':') + 1).trim());
+            }
+        }
+
+        if (contentLength == null) {
+            return null;
+        }
+
+        byte[] body = input.readNBytes(contentLength);
+        if (body.length == 0) {
+            return null;
+        }
+        return new String(body, StandardCharsets.UTF_8);
+    }
+
+    private static String readHeaderLine(BufferedInputStream input) throws IOException {
+        StringBuilder builder = new StringBuilder();
+        while (true) {
+            int next = input.read();
+            if (next == -1) {
+                if (builder.isEmpty()) {
+                    return null;
+                }
+                throw new EOFException("Unexpected EOF while reading MCP header");
+            }
+            if (next == '\r') {
+                int following = input.read();
+                if (following == '\n') {
+                    return builder.toString();
+                }
+                if (following != -1) {
+                    builder.append((char) next);
+                    builder.append((char) following);
+                }
+                continue;
+            }
+            if (next == '\n') {
+                return builder.toString();
+            }
+            builder.append((char) next);
+        }
+    }
+
+    private static void writeMessage(String json) throws IOException {
+        byte[] body = json.getBytes(StandardCharsets.UTF_8);
+        String header = "Content-Length: " + body.length + "\r\n\r\n";
+        System.out.write(header.getBytes(StandardCharsets.UTF_8));
+        System.out.write(body);
+        System.out.flush();
+    }
+
+    private static String handleRequest(String json) {
+        String method = extractJsonString(json, "method");
+        String id = extractJsonRaw(json, "id");
+
+        if ("notifications/initialized".equals(method)) {
+            return null;
+        }
+
+        if ("initialize".equals(method)) {
+            String result = "{"
+                + "\"protocolVersion\":\"" + PROTOCOL_VERSION + "\","
+                + "\"capabilities\":{\"tools\":{}},"
+                + "\"serverInfo\":{\"name\":\"hello-java-mcp\",\"version\":\"0.1.0\"}"
+                + "}";
+            return success(id, result);
+        }
+
+        if ("tools/list".equals(method)) {
+            String result = "{"
+                + "\"tools\":[{"
+                + "\"name\":\"say_hello\","
+                + "\"description\":\"Devuelve un saludo opcionalmente personalizado y localizado.\","
+                + "\"inputSchema\":{"
+                + "\"type\":\"object\","
+                + "\"properties\":{"
+                + "\"name\":{\"type\":\"string\",\"description\":\"Nombre opcional a saludar.\"},"
+                + "\"lang\":{\"type\":\"string\",\"description\":\"Idioma del saludo, por ejemplo en o es.\"},"
+                + "\"ip\":{\"type\":\"string\",\"description\":\"IP opcional a reflejar en la respuesta.\"}"
+                + "},"
+                + "\"additionalProperties\":false"
+                + "}"
+                + "}]"
+                + "}";
+            return success(id, result);
+        }
+
+        if ("tools/call".equals(method)) {
+            String toolName = extractJsonString(json, "name");
+            if (!"say_hello".equals(toolName)) {
+                return error(id, -32602, "Herramienta no soportada: " + toolName);
+            }
+
+            String name = extractJsonString(json, "name", 2);
+            String lang = extractJsonString(json, "lang");
+            String ip = extractJsonString(json, "ip");
+            if (ip == null || ip.isBlank()) {
+                ip = "127.0.0.1";
+            }
+
+            Map<String, Object> payload = HelloService.buildHelloPayload(name, lang, ip);
+            String payloadJson = toJson(payload);
+            String result = "{"
+                + "\"content\":[{\"type\":\"text\",\"text\":" + quote(payloadJson) + "}],"
+                + "\"structuredContent\":" + payloadJson + ","
+                + "\"isError\":false"
+                + "}";
+            return success(id, result);
+        }
+
+        return error(id, -32601, "Método no encontrado: " + method);
+    }
+
+    private static String success(String id, String resultJson) {
+        return "{"
+            + "\"jsonrpc\":\"2.0\","
+            + "\"id\":" + normalizeId(id) + ","
+            + "\"result\":" + resultJson
+            + "}";
+    }
+
+    private static String error(String id, int code, String message) {
+        return "{"
+            + "\"jsonrpc\":\"2.0\","
+            + "\"id\":" + normalizeId(id) + ","
+            + "\"error\":{\"code\":" + code + ",\"message\":" + quote(message) + "}"
+            + "}";
+    }
+
+    private static String normalizeId(String id) {
+        if (id == null || id.isBlank()) {
+            return "null";
+        }
+        return id;
+    }
+
+    private static String toJson(Map<String, Object> payload) {
+        StringBuilder builder = new StringBuilder();
+        builder.append("{");
+        boolean first = true;
+        for (Map.Entry<String, Object> entry : payload.entrySet()) {
+            if (!first) {
+                builder.append(",");
+            }
+            first = false;
+            builder.append(quote(entry.getKey())).append(":");
+            Object value = entry.getValue();
+            if (value instanceof Boolean) {
+                builder.append(value);
+            } else {
+                builder.append(quote(String.valueOf(value)));
+            }
+        }
+        builder.append("}");
+        return builder.toString();
+    }
+
+    private static String quote(String value) {
+        return "\"" + escapeJson(value) + "\"";
+    }
+
+    private static String escapeJson(String value) {
+        StringBuilder builder = new StringBuilder();
+        for (char current : value.toCharArray()) {
+            switch (current) {
+                case '\\' -> builder.append("\\\\");
+                case '"' -> builder.append("\\\"");
+                case '\n' -> builder.append("\\n");
+                case '\r' -> builder.append("\\r");
+                case '\t' -> builder.append("\\t");
+                default -> builder.append(current);
+            }
+        }
+        return builder.toString();
+    }
+
+    private static String extractJsonString(String json, String key) {
+        return extractJsonString(json, key, 1);
+    }
+
+    private static String extractJsonString(String json, String key, int occurrence) {
+        String pattern = "\"" + key + "\"";
+        int fromIndex = 0;
+        int foundAt = -1;
+        for (int i = 0; i < occurrence; i++) {
+            foundAt = json.indexOf(pattern, fromIndex);
+            if (foundAt < 0) {
+                return null;
+            }
+            fromIndex = foundAt + pattern.length();
+        }
+
+        int colon = json.indexOf(':', foundAt);
+        if (colon < 0) {
+            return null;
+        }
+
+        int valueStart = colon + 1;
+        while (valueStart < json.length() && Character.isWhitespace(json.charAt(valueStart))) {
+            valueStart++;
+        }
+
+        if (valueStart >= json.length() || json.charAt(valueStart) != '"') {
+            return null;
+        }
+
+        StringBuilder builder = new StringBuilder();
+        for (int i = valueStart + 1; i < json.length(); i++) {
+            char current = json.charAt(i);
+            if (current == '"' && json.charAt(i - 1) != '\\') {
+                return builder.toString()
+                    .replace("\\\"", "\"")
+                    .replace("\\n", "\n")
+                    .replace("\\r", "\r")
+                    .replace("\\t", "\t")
+                    .replace("\\\\", "\\");
+            }
+            builder.append(current);
+        }
+        return null;
+    }
+
+    private static String extractJsonRaw(String json, String key) {
+        String pattern = "\"" + key + "\"";
+        int foundAt = json.indexOf(pattern);
+        if (foundAt < 0) {
+            return null;
+        }
+
+        int colon = json.indexOf(':', foundAt);
+        if (colon < 0) {
+            return null;
+        }
+
+        int valueStart = colon + 1;
+        while (valueStart < json.length() && Character.isWhitespace(json.charAt(valueStart))) {
+            valueStart++;
+        }
+
+        int valueEnd = valueStart;
+        while (valueEnd < json.length() && ",}\r\n".indexOf(json.charAt(valueEnd)) < 0) {
+            valueEnd++;
+        }
+        return json.substring(valueStart, valueEnd).trim();
+    }
+}
