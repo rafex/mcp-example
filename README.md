@@ -89,6 +89,10 @@ Si `lang` no se envía, el valor por defecto es `en`.
 ├── README.md
 ├── Makefile
 ├── justfile
+├── openapi/
+│   ├── README.md
+│   ├── api-hello.yaml
+│   └── mcp-hello.http.json
 ├── backend/
 │   └── api-hello/
 │       ├── java/
@@ -99,6 +103,14 @@ Si `lang` no se envía, el valor por defecto es `en`.
 │           ├── hello_service.py
 │           └── server.py
 └── mcp/
+    ├── docs/
+    │   ├── README.md
+    │   ├── what-is-mcp-es.md
+    │   ├── what-is-mcp-en.md
+    │   ├── stdio-vs-network-es.md
+    │   ├── stdio-vs-network-en.md
+    │   ├── mcp-server-es.md
+    │   └── mcp-server-en.md
     └── hello/
         ├── java/
         │   ├── README.md
@@ -153,6 +165,25 @@ Este repositorio busca responder estas preguntas:
 3. Cómo implementar MCP sobre `stdio` y JSON-RPC sin depender de SDKs.
 4. Cómo mantener una idea funcional equivalente entre Python y Java.
 5. Cómo documentar el proceso para que sirva como material de estudio.
+
+## OpenAPI y clientes API
+
+La carpeta `openapi/` concentra las definiciones consumibles por herramientas como Bruno o Postman.
+
+- Los endpoints REST se describen con OpenAPI.
+- Los ejemplos MCP se documentan con mensajes JSON-RPC de referencia, porque MCP sobre `stdio` no encaja de forma natural en OpenAPI.
+- Cuando un MCP tenga una variante HTTP o SSE en el futuro, esa interfaz sí podrá describirse también con OpenAPI.
+
+## Documentación MCP
+
+La carpeta `mcp/docs/` contiene documentación conceptual para estudio.
+
+Ahí se explica:
+
+- qué es MCP
+- cómo funciona MCP sobre `stdio`
+- la diferencia entre `stdio` y transportes de red
+- qué tipos de transporte puede usar un servidor MCP
 
 ## Próximos pasos
 

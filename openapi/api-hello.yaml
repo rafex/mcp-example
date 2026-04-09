@@ -1,0 +1,149 @@
+openapi: 3.1.0
+info:
+  title: Hello API
+  version: 0.1.0
+  summary: API REST de ejemplo para saludar opcionalmente por nombre e idioma.
+  description: >
+    Definición OpenAPI del primer ejemplo del repositorio. La API expone
+    un endpoint GET /hello con parámetros opcionales name y lang.
+servers:
+  - url: http://127.0.0.1:8080
+    description: Backend Python
+  - url: http://127.0.0.1:8081
+    description: Backend Java
+tags:
+  - name: hello
+    description: Operaciones de saludo
+paths:
+  /hello:
+    get:
+      tags:
+        - hello
+      operationId: getHello
+      summary: Devuelve un saludo localizado
+      description: >
+        Devuelve un saludo. Si se envía name, la respuesta incluye un saludo
+        personalizado. Si no se envía lang o se envía un código no soportado,
+        se usa en.
+      parameters:
+        - name: name
+          in: query
+          required: false
+          description: Nombre opcional de la persona a saludar.
+          schema:
+            type: string
+            minLength: 1
+            examples:
+              - Raúl
+        - name: lang
+          in: query
+          required: false
+          description: Idioma del saludo.
+          schema:
+            type: string
+            default: en
+            enum:
+              - en
+              - zh
+              - hi
+              - es
+              - fr
+              - ar
+              - bn
+              - pt
+              - ru
+              - ur
+      responses:
+        "200":
+          description: Saludo generado correctamente
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/HelloWithoutName"
+                  - $ref: "#/components/schemas/HelloWithName"
+              examples:
+                withoutName:
+                  summary: Sin nombre
+                  value:
+                    message: Hello!
+                    timestamp: 23:00:00 UTC+00:00
+                    ip: 127.0.0.1
+                    lang: en
+                    has_name: false
+                withName:
+                  summary: Con nombre e idioma
+                  value:
+                    message: Hola Raúl!
+                    timestamp: 23:00:00 UTC+00:00
+                    ip: 127.0.0.1
+                    lang: es
+                    has_name: true
+                    name: Raúl
+        "404":
+          description: Ruta no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: Not Found
+components:
+  schemas:
+    HelloBase:
+      type: object
+      required:
+        - message
+        - timestamp
+        - ip
+        - lang
+        - has_name
+      properties:
+        message:
+          type: string
+        timestamp:
+          type: string
+          description: Hora UTC en formato HH:mm:ss UTC+00:00
+        ip:
+          type: string
+          description: IP detectada del cliente o del proxy
+        lang:
+          type: string
+          enum:
+            - en
+            - zh
+            - hi
+            - es
+            - fr
+            - ar
+            - bn
+            - pt
+            - ru
+            - ur
+        has_name:
+          type: boolean
+    HelloWithoutName:
+      allOf:
+        - $ref: "#/components/schemas/HelloBase"
+        - type: object
+          properties:
+            has_name:
+              const: false
+    HelloWithName:
+      allOf:
+        - $ref: "#/components/schemas/HelloBase"
+        - type: object
+          required:
+            - name
+          properties:
+            has_name:
+              const: true
+            name:
+              type: string
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string

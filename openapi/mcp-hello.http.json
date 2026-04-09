@@ -1,0 +1,55 @@
+{
+  "name": "hello-mcp-reference",
+  "transport": "stdio-jsonrpc",
+  "description": "Mensajes de referencia para estudiar y probar el MCP hello.",
+  "messages": [
+    {
+      "title": "initialize",
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "method": "initialize",
+        "params": {}
+      },
+      "expectedResponse": {
+        "jsonrpc": "2.0",
+        "id": 1,
+        "result": {
+          "protocolVersion": "2024-11-05",
+          "capabilities": {
+            "tools": {}
+          },
+          "serverInfo": {
+            "name": "hello-mcp",
+            "version": "0.1.0"
+          }
+        }
+      }
+    },
+    {
+      "title": "tools/list",
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 2,
+        "method": "tools/list",
+        "params": {}
+      }
+    },
+    {
+      "title": "tools/call say_hello",
+      "request": {
+        "jsonrpc": "2.0",
+        "id": 3,
+        "method": "tools/call",
+        "params": {
+          "name": "say_hello",
+          "arguments": {
+            "name": "Raúl",
+            "lang": "es",
+            "ip": "203.0.113.10"
+          }
+        }
+      }
+    }
+  ]
+}
