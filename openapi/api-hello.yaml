@@ -88,8 +88,97 @@ paths:
                 $ref: "#/components/schemas/ErrorResponse"
               example:
                 error: Not Found
+        "405":
+          description: Método no permitido
+          headers:
+            Allow:
+              schema:
+                type: string
+              example: GET, POST, OPTIONS
+    post:
+      tags:
+        - hello
+      operationId: postHello
+      summary: Devuelve un saludo localizado desde JSON
+      description: >
+        Recibe un cuerpo JSON con name y lang opcionales. Si no se envía lang
+        o se envía un código no soportado, se usa en.
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/HelloRequest"
+            examples:
+              withName:
+                value:
+                  name: Raúl
+                  lang: es
+              withoutName:
+                value:
+                  lang: en
+      responses:
+        "200":
+          description: Saludo generado correctamente
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/HelloWithoutName"
+                  - $ref: "#/components/schemas/HelloWithName"
+        "400":
+          description: JSON inválido o campos no válidos
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Ruta no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "405":
+          description: Método no permitido
+          headers:
+            Allow:
+              schema:
+                type: string
+              example: GET, POST, OPTIONS
+    options:
+      tags:
+        - hello
+      operationId: optionsHello
+      summary: Informa los métodos soportados
+      responses:
+        "204":
+          description: Métodos soportados para /hello
+          headers:
+            Allow:
+              schema:
+                type: string
+              example: GET, POST, OPTIONS
 components:
   schemas:
+    HelloRequest:
+      type: object
+      additionalProperties: false
+      properties:
+        name:
+          type: string
+        lang:
+          type: string
+          enum:
+            - en
+            - zh
+            - hi
+            - es
+            - fr
+            - ar
+            - bn
+            - pt
+            - ru
+            - ur
     HelloBase:
       type: object
       required:

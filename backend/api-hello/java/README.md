@@ -5,11 +5,19 @@ Backend REST mínimo en Java usando biblioteca estándar.
 ## Endpoint
 
 - `GET /hello`
+- `POST /hello`
+- `OPTIONS /hello`
 
-## Query params
+## Entrada
+
+Para `GET`:
 
 - `name`: opcional
 - `lang`: opcional, por defecto `en`
+
+Para `POST`:
+
+- cuerpo JSON opcional con `name` y `lang`
 
 ## Ejecutar
 
@@ -38,6 +46,20 @@ Con nombre e idioma:
 
 ```bash
 curl "http://127.0.0.1:8081/hello?name=Ra%C3%BAl&lang=es"
+```
+
+Con `POST`:
+
+```bash
+curl -X POST "http://127.0.0.1:8081/hello" \
+  -H "Content-Type: application/json" \
+  --data '{"name":"Raúl","lang":"es"}'
+```
+
+Ver métodos soportados:
+
+```bash
+curl -i -X OPTIONS "http://127.0.0.1:8081/hello"
 ```
 
 ## Implementación

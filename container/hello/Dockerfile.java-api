@@ -1,0 +1,22 @@
+FROM eclipse-temurin:21-jdk-jammy AS build
+
+WORKDIR /app
+
+COPY backend/api-hello/java/src /app/backend/api-hello/java/src
+
+RUN mkdir -p /app/build \
+    && javac -d /app/build /app/backend/api-hello/java/src/*.java
+
+FROM eclipse-temurin:21-jre-jammy
+
+WORKDIR /app
+
+ENV HELLO_API_HOST=0.0.0.0
+
+COPY --from=build /app/build /app/build
+
+RUN mkdir -p /app/logs
+
+EXPOSE 8081
+
+CMD ["java", "-cp", "/app/build", "HelloApiServer"]

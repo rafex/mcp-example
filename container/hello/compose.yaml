@@ -1,0 +1,20 @@
+services:
+  hello-python-api:
+    build:
+      context: ../..
+      dockerfile: container/hello/Dockerfile.python-api
+    image: mcp-example/hello-python-api:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../../logs:/app/logs
+
+  hello-java-api:
+    build:
+      context: ../..
+      dockerfile: container/hello/Dockerfile.java-api
+    image: mcp-example/hello-java-api:latest
+    ports:
+      - "8081:8081"
+    volumes:
+      - ../../logs:/app/logs

@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>dev.rafex.mcpexample</groupId>
+    <artifactId>agent-example-ether-brain</artifactId>
+    <version>0.1.0-SNAPSHOT</version>
+    <packaging>jar</packaging>
+
+    <name>agent-example-ether-brain</name>
+    <description>Agente Java de ejemplo con EtherBrain, DeepSeek y el MCP hello local</description>
+
+    <properties>
+        <maven.compiler.release>21</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <ether.brain.version>0.1.0-SNAPSHOT</ether.brain.version>
+        <ether.ai.deepseek.version>9.5.5-SNAPSHOT</ether.ai.deepseek.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>dev.rafex.etherbrain</groupId>
+            <artifactId>ether-brain-core</artifactId>
+            <version>${ether.brain.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.rafex.etherbrain</groupId>
+            <artifactId>ether-brain-infra-memory</artifactId>
+            <version>${ether.brain.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.rafex.etherbrain</groupId>
+            <artifactId>ether-brain-tools-local</artifactId>
+            <version>${ether.brain.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.rafex.ether.ai</groupId>
+            <artifactId>ether-ai-deepseek</artifactId>
+            <version>${ether.ai.deepseek.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.14.0</version>
+                <configuration>
+                    <release>${maven.compiler.release}</release>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <configuration>
+                    <mainClass>dev.rafex.mcpexample.agents.java.etherbrain.AgentExampleApp</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

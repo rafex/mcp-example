@@ -18,6 +18,7 @@ Incluye:
 - un backend REST en Java
 - un servidor MCP en Python
 - un servidor MCP en Java
+- un agente Java que usa el MCP `hello` a traves de EtherBrain y DeepSeek
 
 Todos implementan la misma idea base:
 
@@ -89,6 +90,12 @@ Si `lang` no se envía, el valor por defecto es `en`.
 ├── README.md
 ├── Makefile
 ├── justfile
+├── container/
+│   └── hello/
+│       ├── README.md
+│       ├── Dockerfile.python-api
+│       ├── Dockerfile.java-api
+│       └── compose.yaml
 ├── openapi/
 │   ├── README.md
 │   ├── api-hello.yaml
@@ -102,6 +109,12 @@ Si `lang` no se envía, el valor por defecto es `en`.
 │           ├── README.md
 │           ├── hello_service.py
 │           └── server.py
+├── agents/
+│   └── java/
+│       └── agent-example-ether-brain/
+│           ├── README.md
+│           ├── pom.xml
+│           └── src/
 └── mcp/
     ├── docs/
     │   ├── README.md
@@ -144,6 +157,24 @@ Ejecutar API REST en Java:
 just run-java-api-hello
 ```
 
+Construir imagen Docker del backend Python:
+
+```bash
+just docker-build-python-api-hello
+```
+
+Construir imagen Docker del backend Java:
+
+```bash
+just docker-build-java-api-hello
+```
+
+Levantar ambos backends con contenedores:
+
+```bash
+just docker-up-hello
+```
+
 Ejecutar MCP en Python:
 
 ```bash
@@ -156,6 +187,24 @@ Ejecutar MCP en Java:
 just run-java-mcp-hello
 ```
 
+Compilar el agente Java con EtherBrain:
+
+```bash
+just build-java-agent-example-ether-brain
+```
+
+Verificar la tool MCP del agente sin usar DeepSeek:
+
+```bash
+just run-java-agent-example-ether-brain-check-mcp
+```
+
+Ejecutar el agente Java con DeepSeek:
+
+```bash
+DEEPSEEK_API_KEY="tu_api_key" just run-java-agent-example-ether-brain
+```
+
 ## Propósito pedagógico
 
 Este repositorio busca responder estas preguntas:
@@ -164,7 +213,8 @@ Este repositorio busca responder estas preguntas:
 2. Cómo parsear parámetros y devolver JSON con herramientas nativas.
 3. Cómo implementar MCP sobre `stdio` y JSON-RPC sin depender de SDKs.
 4. Cómo mantener una idea funcional equivalente entre Python y Java.
-5. Cómo documentar el proceso para que sirva como material de estudio.
+5. Cómo conectar un runtime de agente con una tool MCP local usando Ether.
+6. Cómo documentar el proceso para que sirva como material de estudio.
 
 ## OpenAPI y clientes API
 

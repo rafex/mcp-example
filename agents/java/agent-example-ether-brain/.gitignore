@@ -1,0 +1,7 @@
+# Salida local de compilacion
+target/
+out/
+*.class
+
+# Maven
+.mvn/timing.properties

@@ -1,0 +1,17 @@
+.git
+.gitignore
+.idea
+.vscode
+__pycache__
+*.pyc
+*.pyo
+*.class
+build
+target
+out
+dist
+logs/*.log
+logs/*.lck
+.venv
+venv
+env
