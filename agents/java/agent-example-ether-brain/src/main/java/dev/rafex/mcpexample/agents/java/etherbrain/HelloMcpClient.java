@@ -56,6 +56,26 @@ public final class HelloMcpClient implements AutoCloseable {
         return structuredContent;
     }
 
+    public synchronized String getHelloLanguages() throws IOException {
+        long id = nextId++;
+        String request = "{"
+            + "\"jsonrpc\":\"2.0\","
+            + "\"id\":" + id + ","
+            + "\"method\":\"tools/call\","
+            + "\"params\":{"
+            + "\"name\":\"get_hello_languages\","
+            + "\"arguments\":{}"
+            + "}"
+            + "}";
+        writeMessage(request);
+        String response = readMessage();
+        String structuredContent = extractObject(response, "\"structuredContent\":");
+        if (structuredContent == null) {
+            throw new IOException("Respuesta MCP sin structuredContent: " + response);
+        }
+        return structuredContent;
+    }
+
     private void initialize() throws IOException {
         long id = nextId++;
         String initializeRequest = "{"

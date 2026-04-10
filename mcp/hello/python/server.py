@@ -4,7 +4,7 @@ import json
 import sys
 from typing import Any
 
-from hello_service import build_hello_payload
+from hello_service import build_hello_payload, get_supported_language_count, get_supported_languages
 
 
 SERVER_INFO = {"name": "hello-python-mcp", "version": "0.1.0"}
@@ -77,7 +77,7 @@ def handle_request(request: dict[str, Any]) -> dict[str, Any] | None:
                 "tools": [
                     {
                         "name": "say_hello",
-                        "description": "Devuelve un saludo opcionalmente personalizado y localizado.",
+                        "description": "Devuelve un saludo opcionalmente personalizado y localizado en uno de los 10 idiomas soportados.",
                         "inputSchema": {
                             "type": "object",
                             "properties": {
@@ -87,7 +87,16 @@ def handle_request(request: dict[str, Any]) -> dict[str, Any] | None:
                             },
                             "additionalProperties": False,
                         },
-                    }
+                    },
+                    {
+                        "name": "get_hello_languages",
+                        "description": "Devuelve la cantidad de idiomas soportados y sus códigos.",
+                        "inputSchema": {
+                            "type": "object",
+                            "properties": {},
+                            "additionalProperties": False,
+                        },
+                    },
                 ]
             },
         )
@@ -96,6 +105,20 @@ def handle_request(request: dict[str, Any]) -> dict[str, Any] | None:
         params = request.get("params", {})
         tool_name = params.get("name")
         arguments = params.get("arguments", {})
+        if tool_name == "get_hello_languages":
+            payload = {
+                "language_count": get_supported_language_count(),
+                "languages": get_supported_languages(),
+            }
+            return success(
+                request_id,
+                {
+                    "content": [{"type": "text", "text": json.dumps(payload, ensure_ascii=False)}],
+                    "structuredContent": payload,
+                    "isError": False,
+                },
+            )
+
         if tool_name != "say_hello":
             return error(request_id, -32602, f"Herramienta no soportada: {tool_name}")
 

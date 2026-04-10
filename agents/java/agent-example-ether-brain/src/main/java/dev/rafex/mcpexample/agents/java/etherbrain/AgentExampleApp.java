@@ -37,7 +37,8 @@ public final class AgentExampleApp {
             String prompt = args.length == 0 ? readEnvOrDefault("PROMPT", DEFAULT_PROMPT) : String.join(" ", args);
 
             InMemoryToolRegistry toolRegistry = new InMemoryToolRegistry()
-                .register(new HelloMcpTool(helloMcpClient));
+                .register(new HelloMcpTool(helloMcpClient))
+                .register(new HelloMcpLanguagesTool(helloMcpClient));
 
             DeepSeekChatModel chatModel = new DeepSeekChatModel(DeepSeekConfig.of(apiKey));
             AgentLoop agentLoop = new AgentLoop(
@@ -51,7 +52,7 @@ public final class AgentExampleApp {
             AgentRuntime runtime = new AgentRuntime(
                 new InMemorySessionStore(),
                 agentLoop,
-                AgentConfig.defaults(Set.of("hello_mcp"))
+                AgentConfig.defaults(Set.of("hello_mcp", "hello_mcp_languages"))
             );
 
             String result = runtime.run("agent-example-ether-brain", prompt);

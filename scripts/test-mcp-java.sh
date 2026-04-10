@@ -48,6 +48,15 @@ messages = [
         "id": 3,
         "method": "tools/call",
         "params": {
+            "name": "get_hello_languages",
+            "arguments": {},
+        },
+    },
+    {
+        "jsonrpc": "2.0",
+        "id": 4,
+        "method": "tools/call",
+        "params": {
             "name": "say_hello",
             "arguments": {
                 "name": "Raúl",

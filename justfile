@@ -20,10 +20,12 @@ build-java-agent-example-ether-brain:
     make build-java-agent-example-ether-brain
 
 run-java-agent-example-ether-brain:
-    make run-java-agent-example-ether-brain
+    make build-java-agent-example-ether-brain
+    mvn -q -f agents/java/agent-example-ether-brain/pom.xml exec:java -Dexec.args="${PROMPT:-Usa la tool hello_mcp para saludar a Ada Lovelace en es y responde breve.}"
 
 run-java-agent-example-ether-brain-check-mcp:
-    make run-java-agent-example-ether-brain-check-mcp
+    make build-java-agent-example-ether-brain
+    mvn -q -f agents/java/agent-example-ether-brain/pom.xml exec:java -Dexec.args="--check-mcp"
 
 docker-build-python-api-hello:
     make docker-build-python-api-hello
@@ -42,3 +44,4 @@ docker-up-hello:
 
 docker-down-hello:
     make docker-down-hello
+

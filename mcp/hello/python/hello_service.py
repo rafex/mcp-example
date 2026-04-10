@@ -17,6 +17,14 @@ GREETINGS = {
 }
 
 
+def get_supported_languages() -> list[str]:
+    return sorted(GREETINGS.keys())
+
+
+def get_supported_language_count() -> int:
+    return len(GREETINGS)
+
+
 def build_hello_payload(name: str | None, lang: str | None, ip: str = "127.0.0.1") -> dict[str, object]:
     normalized_lang = normalize_lang(lang)
     greeting = GREETINGS[normalized_lang]

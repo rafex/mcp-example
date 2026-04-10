@@ -109,7 +109,7 @@ public final class HelloMcpServer {
             String result = "{"
                 + "\"tools\":[{"
                 + "\"name\":\"say_hello\","
-                + "\"description\":\"Devuelve un saludo opcionalmente personalizado y localizado.\","
+                + "\"description\":\"Devuelve un saludo opcionalmente personalizado y localizado en uno de los 10 idiomas soportados.\","
                 + "\"inputSchema\":{"
                 + "\"type\":\"object\","
                 + "\"properties\":{"
@@ -119,6 +119,14 @@ public final class HelloMcpServer {
                 + "},"
                 + "\"additionalProperties\":false"
                 + "}"
+                + "},{"
+                + "\"name\":\"get_hello_languages\","
+                + "\"description\":\"Devuelve la cantidad de idiomas soportados y sus códigos.\","
+                + "\"inputSchema\":{"
+                + "\"type\":\"object\","
+                + "\"properties\":{},"
+                + "\"additionalProperties\":false"
+                + "}"
                 + "}]"
                 + "}";
             return success(id, result);
@@ -126,6 +134,19 @@ public final class HelloMcpServer {
 
         if ("tools/call".equals(method)) {
             String toolName = extractJsonString(json, "name");
+            if ("get_hello_languages".equals(toolName)) {
+                String payloadJson = "{"
+                    + "\"language_count\":" + HelloService.getSupportedLanguageCount() + ","
+                    + "\"languages\":" + toJsonArray(HelloService.getSupportedLanguages())
+                    + "}";
+                String result = "{"
+                    + "\"content\":[{\"type\":\"text\",\"text\":" + quote(payloadJson) + "}],"
+                    + "\"structuredContent\":" + payloadJson + ","
+                    + "\"isError\":false"
+                    + "}";
+                return success(id, result);
+            }
+
             if (!"say_hello".equals(toolName)) {
                 return error(id, -32602, "Herramienta no soportada: " + toolName);
             }
@@ -196,6 +217,20 @@ public final class HelloMcpServer {
 
     private static String quote(String value) {
         return "\"" + escapeJson(value) + "\"";
+    }
+
+    private static String toJsonArray(Iterable<String> values) {
+        StringBuilder builder = new StringBuilder("[");
+        boolean first = true;
+        for (String value : values) {
+            if (!first) {
+                builder.append(",");
+            }
+            first = false;
+            builder.append(quote(value));
+        }
+        builder.append("]");
+        return builder.toString();
     }
 
     private static String escapeJson(String value) {
