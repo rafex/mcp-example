@@ -1,14 +1,19 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from typing import Any
+from urllib.error import HTTPError, URLError
+from urllib.parse import urlencode
+from urllib.request import Request, urlopen
 
-from hello_service import build_hello_payload, get_supported_language_count, get_supported_languages
+from hello_service import get_supported_language_count, get_supported_languages
 
 
 SERVER_INFO = {"name": "hello-python-mcp", "version": "0.1.0"}
 PROTOCOL_VERSION = "2024-11-05"
+HELLO_API_BASE_URL = os.getenv("HELLO_API_BASE_URL", "http://127.0.0.1:8080")
 
 
 def main() -> None:
@@ -122,7 +127,7 @@ def handle_request(request: dict[str, Any]) -> dict[str, Any] | None:
         if tool_name != "say_hello":
             return error(request_id, -32602, f"Herramienta no soportada: {tool_name}")
 
-        payload = build_hello_payload(
+        payload = call_hello_api(
             name=arguments.get("name"),
             lang=arguments.get("lang"),
             ip=arguments.get("ip") or "127.0.0.1",
@@ -145,6 +150,29 @@ def success(request_id: Any, result: dict[str, Any]) -> dict[str, Any]:
 
 def error(request_id: Any, code: int, message: str) -> dict[str, Any]:
     return {"jsonrpc": "2.0", "id": request_id, "error": {"code": code, "message": message}}
+
+
+def call_hello_api(name: str | None, lang: str | None, ip: str) -> dict[str, Any]:
+    params: dict[str, str] = {}
+    if name:
+        params["name"] = name
+    if lang:
+        params["lang"] = lang
+
+    query = urlencode(params)
+    url = f"{HELLO_API_BASE_URL}/hello"
+    if query:
+        url = f"{url}?{query}"
+
+    request = Request(url, method="GET", headers={"X-Forwarded-For": ip})
+    try:
+        with urlopen(request, timeout=5) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except HTTPError as exception:
+        detail = exception.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"REST backend responded with HTTP {exception.code}: {detail}") from exception
+    except URLError as exception:
+        raise RuntimeError(f"REST backend unavailable at {HELLO_API_BASE_URL}: {exception.reason}") from exception
 
 
 if __name__ == "__main__":

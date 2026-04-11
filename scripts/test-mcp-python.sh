@@ -4,6 +4,11 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+python3 backend/api-hello/python/server.py >/tmp/mcp-example-python-api.log 2>&1 &
+BACKEND_PID=$!
+trap 'kill "$BACKEND_PID" 2>/dev/null || true' EXIT
+sleep 1
+
 python3 - <<'PY'
 import json
 import subprocess

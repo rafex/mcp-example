@@ -1,12 +1,20 @@
 import java.io.BufferedInputStream;
 import java.io.EOFException;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URLEncoder;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 public final class HelloMcpServer {
     private static final String PROTOCOL_VERSION = "2024-11-05";
+    private static final String HELLO_API_BASE_URL =
+        System.getenv().getOrDefault("HELLO_API_BASE_URL", "http://127.0.0.1:8081");
+    private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
     private HelloMcpServer() {
     }
@@ -158,8 +166,7 @@ public final class HelloMcpServer {
                 ip = "127.0.0.1";
             }
 
-            Map<String, Object> payload = HelloService.buildHelloPayload(name, lang, ip);
-            String payloadJson = toJson(payload);
+            String payloadJson = callHelloApi(name, lang, ip);
             String result = "{"
                 + "\"content\":[{\"type\":\"text\",\"text\":" + quote(payloadJson) + "}],"
                 + "\"structuredContent\":" + payloadJson + ","
@@ -192,6 +199,43 @@ public final class HelloMcpServer {
             return "null";
         }
         return id;
+    }
+
+    private static String callHelloApi(String name, String lang, String ip) {
+        try {
+            StringBuilder url = new StringBuilder(HELLO_API_BASE_URL).append("/hello");
+            boolean first = true;
+            first = appendQuery(url, "name", name, first);
+            appendQuery(url, "lang", lang, first);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(url.toString()))
+                .header("X-Forwarded-For", ip == null || ip.isBlank() ? "127.0.0.1" : ip)
+                .GET()
+                .build();
+
+            HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            if (response.statusCode() != 200) {
+                throw new IllegalStateException(
+                    "REST backend responded with HTTP " + response.statusCode() + ": " + response.body()
+                );
+            }
+            return response.body();
+        } catch (IOException | InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("REST backend unavailable at " + HELLO_API_BASE_URL, exception);
+        }
+    }
+
+    private static boolean appendQuery(StringBuilder url, String key, String value, boolean first) {
+        if (value == null || value.isBlank()) {
+            return first;
+        }
+        url.append(first ? "?" : "&");
+        url.append(URLEncoder.encode(key, StandardCharsets.UTF_8));
+        url.append("=");
+        url.append(URLEncoder.encode(value, StandardCharsets.UTF_8));
+        return false;
     }
 
     private static String toJson(Map<String, Object> payload) {

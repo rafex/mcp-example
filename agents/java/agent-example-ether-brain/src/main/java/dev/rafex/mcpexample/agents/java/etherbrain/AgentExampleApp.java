@@ -28,9 +28,15 @@ public final class AgentExampleApp {
 
     public static void main(String[] args) throws Exception {
         Path repoRoot = Path.of("").toAbsolutePath().normalize();
-        try (HelloMcpClient helloMcpClient = HelloMcpClient.start(repoRoot)) {
+        try (HelloApiServerProcess ignored = HelloApiServerProcess.start(repoRoot);
+             HelloMcpClient helloMcpClient = HelloMcpClient.start(repoRoot)) {
             if (args.length > 0 && "--check-mcp".equals(args[0])) {
                 System.out.println(helloMcpClient.callHello("Ada Lovelace", "es", "127.0.0.1"));
+                return;
+            }
+
+            if (args.length > 0 && "--check-mcp-languages".equals(args[0])) {
+                System.out.println(helloMcpClient.getHelloLanguages());
                 return;
             }
             if (args.length > 0 && "--check-mcp-languages".equals(args[0])) {

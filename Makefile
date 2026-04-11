@@ -29,7 +29,7 @@ build-java-mcp-hello:
 run-java-mcp-hello: build-java-mcp-hello
 	java -cp $(JAVA_MCP_HELLO_BUILD_DIR) HelloMcpServer
 
-build-java-agent-example-ether-brain: build-java-mcp-hello
+build-java-agent-example-ether-brain: build-java-api-hello build-java-mcp-hello
 	mvn -q -f $(JAVA_AGENT_EXAMPLE_ETHER_BRAIN_DIR)/pom.xml compile
 
 docker-build-python-api-hello:
@@ -52,4 +52,3 @@ docker-up-hello:
 
 docker-down-hello:
 	docker compose -f $(CONTAINER_HELLO_DIR)/compose.yaml down
-

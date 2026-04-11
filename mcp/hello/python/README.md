@@ -4,9 +4,11 @@ Servidor MCP mínimo en Python usando solo biblioteca estándar.
 
 Este directorio está pensado como material de estudio. La idea es mostrar cómo implementar un servidor MCP sin SDK, usando `stdio`, cabeceras `Content-Length` y mensajes JSON-RPC.
 
+En su estado actual, este MCP es un wrapper del backend REST Python. La herramienta `say_hello` no calcula el saludo localmente: hace una llamada HTTP real a `GET /hello`.
+
 ## Objetivo
 
-Exponer una herramienta MCP llamada `say_hello` que replique la idea del backend REST:
+Exponer herramientas MCP sobre el backend REST:
 
 - `name` opcional
 - `lang` opcional
@@ -15,7 +17,7 @@ Exponer una herramienta MCP llamada `say_hello` que replique la idea del backend
 ## Archivos
 
 - `server.py`: implementación del servidor MCP
-- `hello_service.py`: lógica del saludo
+- `hello_service.py`: utilidades locales para idiomas soportados
 
 ## Qué hace `server.py`
 
@@ -26,6 +28,7 @@ Exponer una herramienta MCP llamada `say_hello` que replique la idea del backend
 3. Parsea el cuerpo JSON.
 4. Responde usando JSON-RPC 2.0.
 5. Expone `initialize`, `tools/list` y `tools/call`.
+6. Para `say_hello`, consume el backend REST Python por HTTP.
 
 ## Flujo MCP implementado
 
@@ -49,9 +52,10 @@ Como es una notificación, el servidor no responde.
 
 El cliente pregunta qué herramientas están disponibles.
 
-El servidor devuelve una lista con una sola herramienta:
+El servidor devuelve dos herramientas:
 
 - `say_hello`
+- `get_hello_languages`
 
 La herramienta declara su `inputSchema` JSON para que el cliente sepa qué argumentos acepta.
 
@@ -74,7 +78,7 @@ El servidor:
 
 1. valida el nombre de la herramienta
 2. toma los argumentos
-3. llama a `build_hello_payload`
+3. llama al backend REST en `GET /hello`
 4. responde con:
 
 - `content`: texto serializado
@@ -93,6 +97,18 @@ O directamente:
 
 ```bash
 python3 mcp/hello/python/server.py
+```
+
+Por defecto, el wrapper apunta a:
+
+```text
+http://127.0.0.1:8080
+```
+
+Puedes cambiarlo con:
+
+```bash
+HELLO_API_BASE_URL=http://127.0.0.1:8080 python3 mcp/hello/python/server.py
 ```
 
 ## Cómo probar manualmente
@@ -140,14 +156,16 @@ La herramienta declara un `inputSchema` en formato JSON Schema. Esto ayuda al cl
 - validar argumentos
 - documentar automáticamente la herramienta
 
-### Lógica separada
+### Wrapper sobre REST
 
-La lógica real del saludo vive en `hello_service.py`. Esa separación permite:
+En esta variante, MCP y REST ya no son dos implementaciones paralelas del saludo.
 
-- reutilizar la idea en REST
-- cambiar el transporte sin tocar la lógica principal
-- estudiar mejor qué parte pertenece al protocolo y cuál al dominio
+Ahora:
+
+- el backend REST resuelve el caso de uso
+- el MCP delega en el backend
+- el MCP actúa como adaptador para clientes compatibles con herramientas MCP
 
 ## Siguiente mejora natural
 
-Una mejora razonable para este ejemplo sería extraer una librería compartida de saludo y hacer que REST y MCP la reutilicen sin duplicación.
+Una mejora razonable para este ejemplo sería añadir reintentos, timeouts configurables y una estrategia más explícita para propagar errores del backend REST al cliente MCP.
