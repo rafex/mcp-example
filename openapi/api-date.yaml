@@ -1,0 +1,72 @@
+openapi: 3.1.0
+info:
+  title: Date API
+  version: 0.1.0
+  summary: API REST autenticada para hora actual, ubicaciones, resources y prompts del ejemplo date.
+servers:
+  - url: http://127.0.0.1:8090
+    description: Backend Python
+  - url: http://127.0.0.1:8091
+    description: Backend Java
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+security:
+  - bearerAuth: []
+paths:
+  /date/time:
+    get:
+      summary: Devuelve la hora actual de una ubicación soportada
+      parameters:
+        - in: query
+          name: location
+          required: false
+          schema:
+            type: string
+            default: mx-central
+        - in: header
+          name: X-Date-Client
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Hora actual
+  /date/locations:
+    get:
+      summary: Devuelve las ubicaciones soportadas
+      parameters:
+        - in: header
+          name: X-Date-Client
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Ubicaciones soportadas
+  /date/resources:
+    get:
+      summary: Lista resources usados por el MCP date
+      parameters:
+        - in: header
+          name: X-Date-Client
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Resources
+  /date/prompts:
+    get:
+      summary: Lista prompts usados por el MCP date
+      parameters:
+        - in: header
+          name: X-Date-Client
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Prompts

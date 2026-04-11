@@ -16,6 +16,24 @@ build-java-mcp-hello:
 run-java-mcp-hello:
     make run-java-mcp-hello
 
+run-python-api-date:
+    make run-python-api-date
+
+build-java-api-date:
+    make build-java-api-date
+
+run-java-api-date:
+    make run-java-api-date
+
+run-python-mcp-date:
+    make run-python-mcp-date
+
+build-java-mcp-date:
+    make build-java-mcp-date
+
+run-java-mcp-date:
+    make run-java-mcp-date
+
 build-java-agent-example-ether-brain:
     make build-java-agent-example-ether-brain
 
