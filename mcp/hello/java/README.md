@@ -4,7 +4,10 @@ Servidor MCP mínimo en Java usando solo biblioteca estándar.
 
 Este directorio sirve como material de estudio para entender la mecánica de MCP sin SDK: framing por `Content-Length`, transporte por `stdio` y respuestas JSON-RPC.
 
-En su estado actual, este MCP es un wrapper del backend REST Java. La herramienta `say_hello` no construye el saludo localmente: hace una llamada HTTP real a `GET /hello`.
+En su estado actual, este MCP es un wrapper del backend REST Java.
+
+- `say_hello` hace una llamada HTTP real a `GET /hello`
+- `get_hello_languages` hace una llamada HTTP real a `GET /hello/languages`
 
 ## Objetivo
 
@@ -13,13 +16,19 @@ Exponer herramientas MCP sobre el backend REST Java:
 - `name` opcional
 - `lang` opcional
 - `ip` opcional
+- consulta de idiomas soportados
+
+Además del catálogo de tools, este ejemplo ahora expone:
+
+- 2 resources
+- 2 prompts
 
 La salida replica la idea del ejemplo REST, pero delegando realmente en el backend.
 
 ## Archivos
 
 - `src/HelloMcpServer.java`: servidor MCP
-- `src/HelloService.java`: utilidades locales para idiomas soportados
+- `src/HelloService.java`: utilidades auxiliares del ejemplo
 
 ## Diseño del ejemplo
 
@@ -67,6 +76,24 @@ Su `inputSchema` declara:
 - `lang`
 - `ip`
 
+### Resources
+
+El servidor también expone resources respaldados por el backend REST:
+
+- `hello://service-overview`
+- `hello://language-reference`
+
+`resources/list` consulta `GET /hello/resources` y `resources/read` delega en los endpoints REST de cada recurso.
+
+### Prompts
+
+El servidor también expone prompts respaldados por el backend REST:
+
+- `greet-user`
+- `language-report`
+
+`prompts/list` consulta `GET /hello/prompts` y `prompts/get` delega en los endpoints REST de cada prompt.
+
 ## Flujo de trabajo
 
 ### `initialize`
@@ -98,6 +125,11 @@ El servidor:
 - `content`
 - `structuredContent`
 - `isError`
+
+Cuando el cliente llama `get_hello_languages`, el servidor delega en `GET /hello/languages` y devuelve:
+
+- `language_count`
+- `languages`
 
 ## Ejecutar
 
@@ -134,6 +166,7 @@ Este ejemplo es útil para estudiar:
 - cómo envolver un backend REST con un servidor MCP
 - cómo separar protocolo MCP de la llamada HTTP real
 - cómo reflejar la misma idea funcional en Java y Python
+- cómo alimentar tools, resources y prompts desde el mismo backend REST
 
 ## Limitaciones deliberadas
 

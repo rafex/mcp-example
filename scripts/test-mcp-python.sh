@@ -4,6 +4,9 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
+export HELLO_API_PORT=18080
+export HELLO_API_BASE_URL="http://127.0.0.1:${HELLO_API_PORT}"
+
 python3 backend/api-hello/python/server.py >/tmp/mcp-example-python-api.log 2>&1 &
 BACKEND_PID=$!
 trap 'kill "$BACKEND_PID" 2>/dev/null || true' EXIT
@@ -49,6 +52,38 @@ messages = [
     {
         "jsonrpc": "2.0",
         "id": 3,
+        "method": "resources/list",
+        "params": {},
+    },
+    {
+        "jsonrpc": "2.0",
+        "id": 4,
+        "method": "resources/read",
+        "params": {
+            "uri": "hello://service-overview",
+        },
+    },
+    {
+        "jsonrpc": "2.0",
+        "id": 5,
+        "method": "prompts/list",
+        "params": {},
+    },
+    {
+        "jsonrpc": "2.0",
+        "id": 6,
+        "method": "prompts/get",
+        "params": {
+            "name": "greet-user",
+            "arguments": {
+                "name": "Raúl",
+                "lang": "es",
+            },
+        },
+    },
+    {
+        "jsonrpc": "2.0",
+        "id": 7,
         "method": "tools/call",
         "params": {
             "name": "get_hello_languages",
@@ -57,7 +92,7 @@ messages = [
     },
     {
         "jsonrpc": "2.0",
-        "id": 4,
+        "id": 8,
         "method": "tools/call",
         "params": {
             "name": "say_hello",

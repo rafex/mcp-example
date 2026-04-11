@@ -4,7 +4,10 @@ Servidor MCP mínimo en Python usando solo biblioteca estándar.
 
 Este directorio está pensado como material de estudio. La idea es mostrar cómo implementar un servidor MCP sin SDK, usando `stdio`, cabeceras `Content-Length` y mensajes JSON-RPC.
 
-En su estado actual, este MCP es un wrapper del backend REST Python. La herramienta `say_hello` no calcula el saludo localmente: hace una llamada HTTP real a `GET /hello`.
+En su estado actual, este MCP es un wrapper del backend REST Python.
+
+- `say_hello` hace una llamada HTTP real a `GET /hello`
+- `get_hello_languages` hace una llamada HTTP real a `GET /hello/languages`
 
 ## Objetivo
 
@@ -13,11 +16,17 @@ Exponer herramientas MCP sobre el backend REST:
 - `name` opcional
 - `lang` opcional
 - respuesta JSON con `message`, `timestamp`, `ip`
+- consulta de idiomas soportados
+
+Además del catálogo de tools, este ejemplo ahora expone:
+
+- 2 resources
+- 2 prompts
 
 ## Archivos
 
 - `server.py`: implementación del servidor MCP
-- `hello_service.py`: utilidades locales para idiomas soportados
+- `hello_service.py`: utilidades auxiliares del ejemplo
 
 ## Qué hace `server.py`
 
@@ -29,6 +38,7 @@ Exponer herramientas MCP sobre el backend REST:
 4. Responde usando JSON-RPC 2.0.
 5. Expone `initialize`, `tools/list` y `tools/call`.
 6. Para `say_hello`, consume el backend REST Python por HTTP.
+7. Para `get_hello_languages`, consume `GET /hello/languages`.
 
 ## Flujo MCP implementado
 
@@ -59,6 +69,42 @@ El servidor devuelve dos herramientas:
 
 La herramienta declara su `inputSchema` JSON para que el cliente sepa qué argumentos acepta.
 
+### 3.b `resources/list` y `resources/read`
+
+El servidor también expone resources respaldados por el backend REST:
+
+- `hello://service-overview`
+- `hello://language-reference`
+
+`resources/list` consulta:
+
+```text
+GET /hello/resources
+```
+
+y `resources/read` delega en:
+
+- `GET /hello/resources/service-overview`
+- `GET /hello/resources/language-reference`
+
+### 3.c `prompts/list` y `prompts/get`
+
+El servidor también expone prompts respaldados por el backend REST:
+
+- `greet-user`
+- `language-report`
+
+`prompts/list` consulta:
+
+```text
+GET /hello/prompts
+```
+
+y `prompts/get` delega en:
+
+- `GET /hello/prompts/greet-user`
+- `GET /hello/prompts/language-report`
+
 ### 4. `tools/call`
 
 El cliente llama a la herramienta con argumentos como:
@@ -84,6 +130,11 @@ El servidor:
 - `content`: texto serializado
 - `structuredContent`: objeto JSON útil para clientes MCP
 - `isError`: `false`
+
+Cuando el cliente llama `get_hello_languages`, el servidor delega en `GET /hello/languages` y devuelve:
+
+- `language_count`
+- `languages`
 
 ## Ejecutar
 
@@ -165,6 +216,7 @@ Ahora:
 - el backend REST resuelve el caso de uso
 - el MCP delega en el backend
 - el MCP actúa como adaptador para clientes compatibles con herramientas MCP
+- el mismo backend también alimenta resources y prompts del MCP
 
 ## Siguiente mejora natural
 

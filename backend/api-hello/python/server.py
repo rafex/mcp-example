@@ -8,11 +8,18 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from hello_service import build_hello_payload, build_languages_payload
+from hello_service import (
+    build_hello_payload,
+    build_languages_payload,
+    build_prompt_details_payload,
+    build_prompts_payload,
+    build_resource_contents_payload,
+    build_resources_payload,
+)
 
 
 HOST = os.getenv("HELLO_API_HOST", "127.0.0.1")
-PORT = 8080
+PORT = int(os.getenv("HELLO_API_PORT", "8080"))
 ALLOWED_METHODS = "GET, POST, OPTIONS"
 LOGS_DIR = Path(__file__).resolve().parents[3] / "logs"
 LOG_FILE = LOGS_DIR / "backend-api-hello-python.log"
@@ -54,12 +61,33 @@ class HelloHandler(BaseHTTPRequestHandler):
             self.handle_languages()
             return
 
+        if parsed_url.path == "/hello/resources":
+            self.handle_resources()
+            return
+
+        if parsed_url.path.startswith("/hello/resources/"):
+            self.handle_resource(parsed_url.path)
+            return
+
+        if parsed_url.path == "/hello/prompts":
+            self.handle_prompts()
+            return
+
+        if parsed_url.path.startswith("/hello/prompts/"):
+            self.handle_prompt(parsed_url)
+            return
+
         self.handle_not_found(parsed_url.path)
 
     def do_POST(self) -> None:  # noqa: N802
         parsed_url = urlparse(self.path)
-        if parsed_url.path != "/hello":
+        allow_methods = allowed_methods_for_path(parsed_url.path)
+        if allow_methods is None:
             self.handle_not_found(parsed_url.path)
+            return
+
+        if parsed_url.path != "/hello":
+            self.send_json({"error": "Method Not Allowed"}, HTTPStatus.METHOD_NOT_ALLOWED, allow_methods)
             return
 
         payload = self.read_json_body()
@@ -80,7 +108,8 @@ class HelloHandler(BaseHTTPRequestHandler):
 
     def do_OPTIONS(self) -> None:  # noqa: N802
         parsed_url = urlparse(self.path)
-        if parsed_url.path not in {"/hello", "/hello/languages"}:
+        allow_methods = allowed_methods_for_path(parsed_url.path)
+        if allow_methods is None:
             self.handle_not_found(parsed_url.path)
             return
 
@@ -92,18 +121,19 @@ class HelloHandler(BaseHTTPRequestHandler):
             client_ip,
         )
         self.send_response(HTTPStatus.NO_CONTENT.value)
-        self.send_header("Allow", ALLOWED_METHODS)
+        self.send_header("Allow", allow_methods)
         self.send_header("Content-Length", "0")
         self.end_headers()
 
     def log_message(self, format: str, *args: object) -> None:
         return
 
-    def send_json(self, payload: dict[str, object], status: HTTPStatus) -> None:
+    def send_json(self, payload: dict[str, object], status: HTTPStatus, allow_methods: str | None = None) -> None:
         body = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         self.send_response(status.value)
         self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Allow", ALLOWED_METHODS)
+        if allow_methods is not None:
+            self.send_header("Allow", allow_methods)
         self.send_header("Content-Length", str(len(body)))
         self.end_headers()
         self.wfile.write(body)
@@ -119,7 +149,7 @@ class HelloHandler(BaseHTTPRequestHandler):
             payload["lang"],
             payload["has_name"],
         )
-        self.send_json(payload, HTTPStatus.OK)
+        self.send_json(payload, HTTPStatus.OK, ALLOWED_METHODS)
 
     def handle_languages(self) -> None:
         client_ip = resolve_client_ip(self)
@@ -131,7 +161,71 @@ class HelloHandler(BaseHTTPRequestHandler):
             client_ip,
             payload["language_count"],
         )
-        self.send_json(payload, HTTPStatus.OK)
+        self.send_json(payload, HTTPStatus.OK, "GET, OPTIONS")
+
+    def handle_resources(self) -> None:
+        client_ip = resolve_client_ip(self)
+        payload = build_resources_payload()
+        LOGGER.info(
+            "request path=/hello/resources method=%s status=%s client_ip=%s resource_count=%s",
+            self.command,
+            HTTPStatus.OK.value,
+            client_ip,
+            len(payload["resources"]),
+        )
+        self.send_json(payload, HTTPStatus.OK, "GET, OPTIONS")
+
+    def handle_resource(self, path: str) -> None:
+        client_ip = resolve_client_ip(self)
+        resource_name = path.rsplit("/", 1)[-1]
+        resource_uri = f"hello://{resource_name}"
+        try:
+            payload = build_resource_contents_payload(resource_uri)
+        except KeyError:
+            self.handle_not_found(path)
+            return
+        LOGGER.info(
+            "request path=%s method=%s status=%s client_ip=%s",
+            path,
+            self.command,
+            HTTPStatus.OK.value,
+            client_ip,
+        )
+        self.send_json(payload, HTTPStatus.OK, "GET, OPTIONS")
+
+    def handle_prompts(self) -> None:
+        client_ip = resolve_client_ip(self)
+        payload = build_prompts_payload()
+        LOGGER.info(
+            "request path=/hello/prompts method=%s status=%s client_ip=%s prompt_count=%s",
+            self.command,
+            HTTPStatus.OK.value,
+            client_ip,
+            len(payload["prompts"]),
+        )
+        self.send_json(payload, HTTPStatus.OK, "GET, OPTIONS")
+
+    def handle_prompt(self, parsed_url) -> None:
+        client_ip = resolve_client_ip(self)
+        prompt_name = parsed_url.path.rsplit("/", 1)[-1]
+        query_params = parse_qs(parsed_url.query)
+        try:
+            payload = build_prompt_details_payload(
+                prompt_name,
+                name=first_value(query_params, "name"),
+                lang=first_value(query_params, "lang"),
+            )
+        except KeyError:
+            self.handle_not_found(parsed_url.path)
+            return
+        LOGGER.info(
+            "request path=%s method=%s status=%s client_ip=%s",
+            parsed_url.path,
+            self.command,
+            HTTPStatus.OK.value,
+            client_ip,
+        )
+        self.send_json(payload, HTTPStatus.OK, "GET, OPTIONS")
 
     def handle_not_found(self, path: str) -> None:
         LOGGER.warning(
@@ -180,6 +274,16 @@ def first_value(query_params: dict[str, list[str]], key: str) -> str | None:
 
 def resolve_client_ip(handler: BaseHTTPRequestHandler) -> str:
     return handler.headers.get("X-Forwarded-For", handler.client_address[0]).split(",")[0].strip()
+
+
+def allowed_methods_for_path(path: str) -> str | None:
+    if path == "/hello":
+        return ALLOWED_METHODS
+    if path in {"/hello/languages", "/hello/resources", "/hello/prompts"}:
+        return "GET, OPTIONS"
+    if path.startswith("/hello/resources/") or path.startswith("/hello/prompts/"):
+        return "GET, OPTIONS"
+    return None
 
 
 def main() -> None:

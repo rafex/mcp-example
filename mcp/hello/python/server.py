@@ -67,7 +67,7 @@ def handle_request(request: dict[str, Any]) -> dict[str, Any] | None:
             request_id,
             {
                 "protocolVersion": PROTOCOL_VERSION,
-                "capabilities": {"tools": {}},
+                "capabilities": {"tools": {}, "resources": {}, "prompts": {}},
                 "serverInfo": SERVER_INFO,
             },
         )
@@ -135,6 +135,29 @@ def handle_request(request: dict[str, Any]) -> dict[str, Any] | None:
             },
         )
 
+    if method == "resources/list":
+        return success(request_id, call_api_json("/hello/resources"))
+
+    if method == "resources/read":
+        params = request.get("params", {})
+        resource_uri = params.get("uri")
+        resource_path = map_resource_uri_to_path(resource_uri)
+        if resource_path is None:
+            return error(request_id, -32602, f"Resource no soportado: {resource_uri}")
+        return success(request_id, call_api_json(resource_path))
+
+    if method == "prompts/list":
+        return success(request_id, call_api_json("/hello/prompts"))
+
+    if method == "prompts/get":
+        params = request.get("params", {})
+        prompt_name = params.get("name")
+        arguments = params.get("arguments", {})
+        prompt_path = build_prompt_path(prompt_name, arguments)
+        if prompt_path is None:
+            return error(request_id, -32602, f"Prompt no soportado: {prompt_name}")
+        return success(request_id, call_api_json(prompt_path))
+
     return error(request_id, -32601, f"Método no encontrado: {method}")
 
 
@@ -179,6 +202,45 @@ def call_hello_languages_api() -> dict[str, Any]:
         raise RuntimeError(f"REST backend responded with HTTP {exception.code}: {detail}") from exception
     except URLError as exception:
         raise RuntimeError(f"REST backend unavailable at {HELLO_API_BASE_URL}: {exception.reason}") from exception
+
+
+def call_api_json(path: str) -> dict[str, Any]:
+    request = Request(f"{HELLO_API_BASE_URL}{path}", method="GET")
+    try:
+        with urlopen(request, timeout=5) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except HTTPError as exception:
+        detail = exception.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"REST backend responded with HTTP {exception.code}: {detail}") from exception
+    except URLError as exception:
+        raise RuntimeError(f"REST backend unavailable at {HELLO_API_BASE_URL}: {exception.reason}") from exception
+
+
+def map_resource_uri_to_path(resource_uri: str | None) -> str | None:
+    if resource_uri == "hello://service-overview":
+        return "/hello/resources/service-overview"
+    if resource_uri == "hello://language-reference":
+        return "/hello/resources/language-reference"
+    return None
+
+
+def build_prompt_path(prompt_name: str | None, arguments: dict[str, Any]) -> str | None:
+    if prompt_name == "greet-user":
+        query = urlencode(
+            {
+                key: value
+                for key, value in {
+                    "name": arguments.get("name"),
+                    "lang": arguments.get("lang"),
+                }.items()
+                if value
+            }
+        )
+        return f"/hello/prompts/greet-user?{query}" if query else "/hello/prompts/greet-user"
+    if prompt_name == "language-report":
+        query = urlencode({"name": arguments.get("name")}) if arguments.get("name") else ""
+        return f"/hello/prompts/language-report?{query}" if query else "/hello/prompts/language-report"
+    return None
 
 
 if __name__ == "__main__":

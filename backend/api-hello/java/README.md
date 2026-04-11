@@ -7,6 +7,8 @@ Backend REST mínimo en Java usando biblioteca estándar.
 - `GET /hello`
 - `POST /hello`
 - `OPTIONS /hello`
+- `GET /hello/languages`
+- `OPTIONS /hello/languages`
 
 ## Entrada
 
@@ -62,7 +64,19 @@ Ver métodos soportados:
 curl -i -X OPTIONS "http://127.0.0.1:8081/hello"
 ```
 
+Consultar idiomas soportados:
+
+```bash
+curl "http://127.0.0.1:8081/hello/languages"
+```
+
+Ver métodos soportados para idiomas:
+
+```bash
+curl -i -X OPTIONS "http://127.0.0.1:8081/hello/languages"
+```
+
 ## Implementación
 
 - `src/HelloApiServer.java` implementa el servidor HTTP con `com.sun.net.httpserver.HttpServer`
-- `src/HelloService.java` concentra la lógica del saludo
+- `src/HelloService.java` concentra la lógica del saludo y la metadata de idiomas

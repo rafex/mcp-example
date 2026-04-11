@@ -7,6 +7,8 @@ Backend REST mínimo en Python usando solo biblioteca estándar.
 - `GET /hello`
 - `POST /hello`
 - `OPTIONS /hello`
+- `GET /hello/languages`
+- `OPTIONS /hello/languages`
 
 ## Entrada
 
@@ -61,7 +63,19 @@ Ver métodos soportados:
 curl -i -X OPTIONS "http://127.0.0.1:8080/hello"
 ```
 
+Consultar idiomas soportados:
+
+```bash
+curl "http://127.0.0.1:8080/hello/languages"
+```
+
+Ver métodos soportados para idiomas:
+
+```bash
+curl -i -X OPTIONS "http://127.0.0.1:8080/hello/languages"
+```
+
 ## Implementación
 
 - `server.py` implementa el servidor HTTP con `http.server`
-- `hello_service.py` concentra la lógica del saludo
+- `hello_service.py` concentra la lógica del saludo y la metadata de idiomas

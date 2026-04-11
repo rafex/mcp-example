@@ -107,7 +107,7 @@ public final class HelloMcpServer {
         if ("initialize".equals(method)) {
             String result = "{"
                 + "\"protocolVersion\":\"" + PROTOCOL_VERSION + "\","
-                + "\"capabilities\":{\"tools\":{}},"
+                + "\"capabilities\":{\"tools\":{},\"resources\":{},\"prompts\":{}},"
                 + "\"serverInfo\":{\"name\":\"hello-java-mcp\",\"version\":\"0.1.0\"}"
                 + "}";
             return success(id, result);
@@ -170,6 +170,34 @@ public final class HelloMcpServer {
                 + "\"isError\":false"
                 + "}";
             return success(id, result);
+        }
+
+        if ("resources/list".equals(method)) {
+            return success(id, callApi("/hello/resources"));
+        }
+
+        if ("resources/read".equals(method)) {
+            String resourceUri = extractJsonString(json, "uri");
+            String path = mapResourceUriToPath(resourceUri);
+            if (path == null) {
+                return error(id, -32602, "Resource no soportado: " + resourceUri);
+            }
+            return success(id, callApi(path));
+        }
+
+        if ("prompts/list".equals(method)) {
+            return success(id, callApi("/hello/prompts"));
+        }
+
+        if ("prompts/get".equals(method)) {
+            String promptName = extractJsonString(json, "name");
+            String argumentName = extractJsonString(json, "name", 2);
+            String argumentLang = extractJsonString(json, "lang");
+            String path = buildPromptPath(promptName, argumentName, argumentLang);
+            if (path == null) {
+                return error(id, -32602, "Prompt no soportado: " + promptName);
+            }
+            return success(id, callApi(path));
         }
 
         return error(id, -32601, "Método no encontrado: " + method);
@@ -236,9 +264,13 @@ public final class HelloMcpServer {
     }
 
     private static String callHelloLanguagesApi() {
+        return callApi("/hello/languages");
+    }
+
+    private static String callApi(String path) {
         try {
             HttpRequest request = HttpRequest.newBuilder()
-                .uri(URI.create(HELLO_API_BASE_URL + "/hello/languages"))
+                .uri(URI.create(HELLO_API_BASE_URL + path))
                 .GET()
                 .build();
 
@@ -253,6 +285,32 @@ public final class HelloMcpServer {
             Thread.currentThread().interrupt();
             throw new IllegalStateException("REST backend unavailable at " + HELLO_API_BASE_URL, exception);
         }
+    }
+
+    private static String mapResourceUriToPath(String resourceUri) {
+        if ("hello://service-overview".equals(resourceUri)) {
+            return "/hello/resources/service-overview";
+        }
+        if ("hello://language-reference".equals(resourceUri)) {
+            return "/hello/resources/language-reference";
+        }
+        return null;
+    }
+
+    private static String buildPromptPath(String promptName, String name, String lang) {
+        if ("greet-user".equals(promptName)) {
+            StringBuilder path = new StringBuilder("/hello/prompts/greet-user");
+            boolean first = true;
+            first = appendQuery(path, "name", name, first);
+            appendQuery(path, "lang", lang, first);
+            return path.toString();
+        }
+        if ("language-report".equals(promptName)) {
+            StringBuilder path = new StringBuilder("/hello/prompts/language-report");
+            appendQuery(path, "name", name, true);
+            return path.toString();
+        }
+        return null;
     }
 
     private static String quote(String value) {
