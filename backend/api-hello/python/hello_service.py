@@ -19,6 +19,14 @@ GREETINGS = {
 DEFAULT_LANG = "en"
 
 
+def build_languages_payload() -> dict[str, object]:
+    languages = sorted(GREETINGS.keys())
+    return {
+        "language_count": len(languages),
+        "languages": languages,
+    }
+
+
 def build_hello_payload(name: str | None, lang: str | None, ip: str) -> dict[str, object]:
     normalized_lang = normalize_lang(lang)
     greeting = GREETINGS[normalized_lang]

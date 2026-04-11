@@ -143,10 +143,7 @@ public final class HelloMcpServer {
         if ("tools/call".equals(method)) {
             String toolName = extractJsonString(json, "name");
             if ("get_hello_languages".equals(toolName)) {
-                String payloadJson = "{"
-                    + "\"language_count\":" + HelloService.getSupportedLanguageCount() + ","
-                    + "\"languages\":" + toJsonArray(HelloService.getSupportedLanguages())
-                    + "}";
+                String payloadJson = callHelloLanguagesApi();
                 String result = "{"
                     + "\"content\":[{\"type\":\"text\",\"text\":" + quote(payloadJson) + "}],"
                     + "\"structuredContent\":" + payloadJson + ","
@@ -238,43 +235,28 @@ public final class HelloMcpServer {
         return false;
     }
 
-    private static String toJson(Map<String, Object> payload) {
-        StringBuilder builder = new StringBuilder();
-        builder.append("{");
-        boolean first = true;
-        for (Map.Entry<String, Object> entry : payload.entrySet()) {
-            if (!first) {
-                builder.append(",");
+    private static String callHelloLanguagesApi() {
+        try {
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(HELLO_API_BASE_URL + "/hello/languages"))
+                .GET()
+                .build();
+
+            HttpResponse<String> response = HTTP_CLIENT.send(request, HttpResponse.BodyHandlers.ofString(StandardCharsets.UTF_8));
+            if (response.statusCode() != 200) {
+                throw new IllegalStateException(
+                    "REST backend responded with HTTP " + response.statusCode() + ": " + response.body()
+                );
             }
-            first = false;
-            builder.append(quote(entry.getKey())).append(":");
-            Object value = entry.getValue();
-            if (value instanceof Boolean) {
-                builder.append(value);
-            } else {
-                builder.append(quote(String.valueOf(value)));
-            }
+            return response.body();
+        } catch (IOException | InterruptedException exception) {
+            Thread.currentThread().interrupt();
+            throw new IllegalStateException("REST backend unavailable at " + HELLO_API_BASE_URL, exception);
         }
-        builder.append("}");
-        return builder.toString();
     }
 
     private static String quote(String value) {
         return "\"" + escapeJson(value) + "\"";
-    }
-
-    private static String toJsonArray(Iterable<String> values) {
-        StringBuilder builder = new StringBuilder("[");
-        boolean first = true;
-        for (String value : values) {
-            if (!first) {
-                builder.append(",");
-            }
-            first = false;
-            builder.append(quote(value));
-        }
-        builder.append("]");
-        return builder.toString();
     }
 
     private static String escapeJson(String value) {

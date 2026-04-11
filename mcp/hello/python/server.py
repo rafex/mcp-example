@@ -8,9 +8,6 @@ from urllib.error import HTTPError, URLError
 from urllib.parse import urlencode
 from urllib.request import Request, urlopen
 
-from hello_service import get_supported_language_count, get_supported_languages
-
-
 SERVER_INFO = {"name": "hello-python-mcp", "version": "0.1.0"}
 PROTOCOL_VERSION = "2024-11-05"
 HELLO_API_BASE_URL = os.getenv("HELLO_API_BASE_URL", "http://127.0.0.1:8080")
@@ -111,10 +108,7 @@ def handle_request(request: dict[str, Any]) -> dict[str, Any] | None:
         tool_name = params.get("name")
         arguments = params.get("arguments", {})
         if tool_name == "get_hello_languages":
-            payload = {
-                "language_count": get_supported_language_count(),
-                "languages": get_supported_languages(),
-            }
+            payload = call_hello_languages_api()
             return success(
                 request_id,
                 {
@@ -165,6 +159,18 @@ def call_hello_api(name: str | None, lang: str | None, ip: str) -> dict[str, Any
         url = f"{url}?{query}"
 
     request = Request(url, method="GET", headers={"X-Forwarded-For": ip})
+    try:
+        with urlopen(request, timeout=5) as response:
+            return json.loads(response.read().decode("utf-8"))
+    except HTTPError as exception:
+        detail = exception.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"REST backend responded with HTTP {exception.code}: {detail}") from exception
+    except URLError as exception:
+        raise RuntimeError(f"REST backend unavailable at {HELLO_API_BASE_URL}: {exception.reason}") from exception
+
+
+def call_hello_languages_api() -> dict[str, Any]:
+    request = Request(f"{HELLO_API_BASE_URL}/hello/languages", method="GET")
     try:
         with urlopen(request, timeout=5) as response:
             return json.loads(response.read().decode("utf-8"))

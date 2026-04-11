@@ -2,6 +2,7 @@ import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
@@ -20,6 +21,14 @@ public final class HelloService {
     );
 
     private HelloService() {
+    }
+
+    public static Map<String, Object> buildLanguagesPayload() {
+        List<String> languages = GREETINGS.keySet().stream().sorted().toList();
+        Map<String, Object> payload = new LinkedHashMap<>();
+        payload.put("language_count", languages.size());
+        payload.put("languages", languages);
+        return payload;
     }
 
     public static Map<String, Object> buildHelloPayload(String name, String lang, String ip) {

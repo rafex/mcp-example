@@ -44,30 +44,39 @@ public final class HelloApiServer {
             String path = exchange.getRequestURI().getPath();
             String method = exchange.getRequestMethod().toUpperCase();
 
-            if (!"/hello".equals(path)) {
+            if (!"/hello".equals(path) && !"/hello/languages".equals(path)) {
                 LOGGER.warning("request path=" + path + " method=" + method + " status=404 client_ip=" + resolveClientIp(exchange));
                 writeJson(exchange, 404, "{\"error\":\"Not Found\"}");
                 return;
             }
 
             switch (method) {
-                case "GET" -> handleGet(exchange);
-                case "POST" -> handlePost(exchange);
+                case "GET" -> handleGet(exchange, path);
+                case "POST" -> handlePost(exchange, path);
                 case "OPTIONS" -> handleOptions(exchange);
                 default -> {
-                    LOGGER.warning("request path=/hello method=" + method + " status=405 client_ip=" + resolveClientIp(exchange));
+                    LOGGER.warning("request path=" + path + " method=" + method + " status=405 client_ip=" + resolveClientIp(exchange));
                     writeJson(exchange, 405, "{\"error\":\"Method Not Allowed\"}");
                 }
             }
         }
 
-        private void handleGet(HttpExchange exchange) throws IOException {
+        private void handleGet(HttpExchange exchange, String path) throws IOException {
+            if ("/hello/languages".equals(path)) {
+                writeLanguages(exchange);
+                return;
+            }
             URI requestUri = exchange.getRequestURI();
             Map<String, String> queryParams = parseQuery(requestUri.getRawQuery());
             writeHello(exchange, queryParams.get("name"), queryParams.get("lang"));
         }
 
-        private void handlePost(HttpExchange exchange) throws IOException {
+        private void handlePost(HttpExchange exchange, String path) throws IOException {
+            if (!"/hello".equals(path)) {
+                LOGGER.warning("request path=" + path + " method=POST status=405 client_ip=" + resolveClientIp(exchange));
+                writeJson(exchange, 405, "{\"error\":\"Method Not Allowed\"}");
+                return;
+            }
             String body = readRequestBody(exchange.getRequestBody());
             Map<String, String> requestBody = parseSimpleJsonObject(body);
             if (requestBody == null) {
@@ -80,7 +89,7 @@ public final class HelloApiServer {
 
         private void handleOptions(HttpExchange exchange) throws IOException {
             String ip = resolveClientIp(exchange);
-            LOGGER.info("request path=/hello method=OPTIONS status=204 client_ip=" + ip);
+            LOGGER.info("request path=" + exchange.getRequestURI().getPath() + " method=OPTIONS status=204 client_ip=" + ip);
             exchange.getResponseHeaders().set("Allow", ALLOW_HEADER);
             exchange.sendResponseHeaders(204, -1);
             exchange.close();
@@ -94,6 +103,17 @@ public final class HelloApiServer {
                     + " status=200 client_ip=" + ip
                     + " lang=" + payload.get("lang")
                     + " has_name=" + payload.get("has_name")
+            );
+            writeJson(exchange, 200, toJson(payload));
+        }
+
+        private void writeLanguages(HttpExchange exchange) throws IOException {
+            String ip = resolveClientIp(exchange);
+            Map<String, Object> payload = HelloService.buildLanguagesPayload();
+            LOGGER.info(
+                "request path=/hello/languages method=" + exchange.getRequestMethod().toUpperCase()
+                    + " status=200 client_ip=" + ip
+                    + " language_count=" + payload.get("language_count")
             );
             writeJson(exchange, 200, toJson(payload));
         }
@@ -261,6 +281,10 @@ public final class HelloApiServer {
             Object value = entry.getValue();
             if (value instanceof Boolean) {
                 builder.append(value);
+            } else if (value instanceof Number) {
+                builder.append(value);
+            } else if (value instanceof Iterable<?> iterable) {
+                builder.append(toJsonArray(iterable));
             } else {
                 builder.append("\"").append(escapeJson(String.valueOf(value))).append("\"");
             }
@@ -281,6 +305,20 @@ public final class HelloApiServer {
                 default -> builder.append(current);
             }
         }
+        return builder.toString();
+    }
+
+    private static String toJsonArray(Iterable<?> values) {
+        StringBuilder builder = new StringBuilder("[");
+        boolean first = true;
+        for (Object value : values) {
+            if (!first) {
+                builder.append(",");
+            }
+            first = false;
+            builder.append("\"").append(escapeJson(String.valueOf(value))).append("\"");
+        }
+        builder.append("]");
         return builder.toString();
     }
 

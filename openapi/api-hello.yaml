@@ -158,8 +158,74 @@ paths:
               schema:
                 type: string
               example: GET, POST, OPTIONS
+  /hello/languages:
+    get:
+      tags:
+        - hello
+      operationId: getHelloLanguages
+      summary: Devuelve los idiomas soportados
+      description: Devuelve la cantidad total de idiomas soportados y sus códigos.
+      responses:
+        "200":
+          description: Idiomas soportados
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HelloLanguages"
+              example:
+                language_count: 10
+                languages:
+                  - ar
+                  - bn
+                  - en
+                  - es
+                  - fr
+                  - hi
+                  - pt
+                  - ru
+                  - ur
+                  - zh
+        "404":
+          description: Ruta no encontrada
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "405":
+          description: Método no permitido
+          headers:
+            Allow:
+              schema:
+                type: string
+              example: GET, POST, OPTIONS
+    options:
+      tags:
+        - hello
+      operationId: optionsHelloLanguages
+      summary: Informa los métodos soportados para /hello/languages
+      responses:
+        "204":
+          description: Métodos soportados para /hello/languages
+          headers:
+            Allow:
+              schema:
+                type: string
+              example: GET, POST, OPTIONS
 components:
   schemas:
+    HelloLanguages:
+      type: object
+      required:
+        - language_count
+        - languages
+      properties:
+        language_count:
+          type: integer
+          minimum: 0
+        languages:
+          type: array
+          items:
+            type: string
     HelloRequest:
       type: object
       additionalProperties: false

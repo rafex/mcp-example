@@ -8,7 +8,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from hello_service import build_hello_payload
+from hello_service import build_hello_payload, build_languages_payload
 
 
 HOST = os.getenv("HELLO_API_HOST", "127.0.0.1")
@@ -42,15 +42,19 @@ LOGGER = configure_logger()
 class HelloHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:  # noqa: N802
         parsed_url = urlparse(self.path)
-        if parsed_url.path != "/hello":
-            self.handle_not_found(parsed_url.path)
+        if parsed_url.path == "/hello":
+            query_params = parse_qs(parsed_url.query)
+            self.handle_hello(
+                name=first_value(query_params, "name"),
+                lang=first_value(query_params, "lang"),
+            )
             return
 
-        query_params = parse_qs(parsed_url.query)
-        self.handle_hello(
-            name=first_value(query_params, "name"),
-            lang=first_value(query_params, "lang"),
-        )
+        if parsed_url.path == "/hello/languages":
+            self.handle_languages()
+            return
+
+        self.handle_not_found(parsed_url.path)
 
     def do_POST(self) -> None:  # noqa: N802
         parsed_url = urlparse(self.path)
@@ -76,12 +80,17 @@ class HelloHandler(BaseHTTPRequestHandler):
 
     def do_OPTIONS(self) -> None:  # noqa: N802
         parsed_url = urlparse(self.path)
-        if parsed_url.path != "/hello":
+        if parsed_url.path not in {"/hello", "/hello/languages"}:
             self.handle_not_found(parsed_url.path)
             return
 
         client_ip = resolve_client_ip(self)
-        LOGGER.info("request path=/hello method=OPTIONS status=%s client_ip=%s", HTTPStatus.NO_CONTENT.value, client_ip)
+        LOGGER.info(
+            "request path=%s method=OPTIONS status=%s client_ip=%s",
+            parsed_url.path,
+            HTTPStatus.NO_CONTENT.value,
+            client_ip,
+        )
         self.send_response(HTTPStatus.NO_CONTENT.value)
         self.send_header("Allow", ALLOWED_METHODS)
         self.send_header("Content-Length", "0")
@@ -109,6 +118,18 @@ class HelloHandler(BaseHTTPRequestHandler):
             client_ip,
             payload["lang"],
             payload["has_name"],
+        )
+        self.send_json(payload, HTTPStatus.OK)
+
+    def handle_languages(self) -> None:
+        client_ip = resolve_client_ip(self)
+        payload = build_languages_payload()
+        LOGGER.info(
+            "request path=/hello/languages method=%s status=%s client_ip=%s language_count=%s",
+            self.command,
+            HTTPStatus.OK.value,
+            client_ip,
+            payload["language_count"],
         )
         self.send_json(payload, HTTPStatus.OK)
 
