@@ -27,6 +27,10 @@ run-java-agent-example-ether-brain-check-mcp:
     make build-java-agent-example-ether-brain
     mvn -q -f agents/java/agent-example-ether-brain/pom.xml exec:java -Dexec.args="--check-mcp"
 
+run-java-agent-example-ether-brain-check-mcp-languages:
+    make build-java-agent-example-ether-brain
+    mvn -q -f agents/java/agent-example-ether-brain/pom.xml exec:java -Dexec.args="--check-mcp-languages"
+
 docker-build-python-api-hello:
     make docker-build-python-api-hello
 
@@ -44,4 +48,3 @@ docker-up-hello:
 
 docker-down-hello:
     make docker-down-hello
-

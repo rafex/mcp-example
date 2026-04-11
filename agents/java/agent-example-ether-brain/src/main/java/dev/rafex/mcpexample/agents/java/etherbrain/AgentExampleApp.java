@@ -9,13 +9,19 @@ import dev.rafex.etherbrain.core.runtime.AgentRuntime;
 import dev.rafex.etherbrain.core.tools.DefaultToolExecutor;
 import dev.rafex.etherbrain.infra.memory.InMemorySessionStore;
 import dev.rafex.etherbrain.ports.runtime.AgentConfig;
+import dev.rafex.etherbrain.ports.runtime.ExecutionContext;
+import dev.rafex.etherbrain.ports.session.ConversationState;
+import dev.rafex.etherbrain.ports.tools.ToolRegistry;
+import dev.rafex.etherbrain.tools.local.CompositeToolRegistry;
 import dev.rafex.etherbrain.tools.local.InMemoryToolRegistry;
 import java.nio.file.Path;
+import java.util.List;
 import java.util.Set;
 
 public final class AgentExampleApp {
-    private static final String DEFAULT_PROMPT = "Usa la tool hello_mcp para saludar a Ada Lovelace en es y responde breve.";
     private static final String DEFAULT_MODEL = "deepseek-chat";
+    private static final String DEFAULT_PROMPT_TEMPLATE = "hello-es";
+    private static final String DEFAULT_SESSION_ID = "agent-example-ether-brain";
 
     private AgentExampleApp() {
     }
@@ -27,6 +33,10 @@ public final class AgentExampleApp {
                 System.out.println(helloMcpClient.callHello("Ada Lovelace", "es", "127.0.0.1"));
                 return;
             }
+            if (args.length > 0 && "--check-mcp-languages".equals(args[0])) {
+                System.out.println(helloMcpClient.getHelloLanguages());
+                return;
+            }
 
             String apiKey = System.getenv("DEEPSEEK_API_KEY");
             if (apiKey == null || apiKey.isBlank()) {
@@ -34,11 +44,17 @@ public final class AgentExampleApp {
             }
 
             String modelName = readEnvOrDefault("DEEPSEEK_MODEL", DEFAULT_MODEL);
-            String prompt = args.length == 0 ? readEnvOrDefault("PROMPT", DEFAULT_PROMPT) : String.join(" ", args);
+            AgentConfig agentConfig = AgentConfig.defaults(Set.of("hello_mcp", "hello_mcp_languages"));
+            ToolRegistry mcpToolRegistry = new McpHelloToolRegistry(helloMcpClient);
+            ToolRegistry toolRegistry = new CompositeToolRegistry(List.of(
+                mcpToolRegistry,
+                new InMemoryToolRegistry()
+            ));
 
-            InMemoryToolRegistry toolRegistry = new InMemoryToolRegistry()
-                .register(new HelloMcpTool(helloMcpClient))
-                .register(new HelloMcpLanguagesTool(helloMcpClient));
+            String sessionId = readEnvOrDefault("AGENT_SESSION_ID", DEFAULT_SESSION_ID);
+            String prompt = args.length == 0
+                ? resolvePrompt(readEnvOrDefault("AGENT_PROMPT_TEMPLATE", DEFAULT_PROMPT_TEMPLATE), agentConfig, sessionId)
+                : String.join(" ", args);
 
             DeepSeekChatModel chatModel = new DeepSeekChatModel(DeepSeekConfig.of(apiKey));
             AgentLoop agentLoop = new AgentLoop(
@@ -52,10 +68,10 @@ public final class AgentExampleApp {
             AgentRuntime runtime = new AgentRuntime(
                 new InMemorySessionStore(),
                 agentLoop,
-                AgentConfig.defaults(Set.of("hello_mcp", "hello_mcp_languages"))
+                agentConfig
             );
 
-            String result = runtime.run("agent-example-ether-brain", prompt);
+            String result = runtime.run(sessionId, prompt);
             System.out.println(result);
         }
     }
@@ -66,5 +82,15 @@ public final class AgentExampleApp {
             return defaultValue;
         }
         return value;
+    }
+
+    private static String resolvePrompt(String templateName, AgentConfig agentConfig, String sessionId) throws Exception {
+        AgentExamplePromptRegistry promptRegistry = new AgentExamplePromptRegistry();
+        ExecutionContext context = new ExecutionContext(sessionId, new ConversationState(), agentConfig);
+        String promptOverride = System.getenv("PROMPT");
+        if (promptOverride != null && !promptOverride.isBlank()) {
+            return promptOverride;
+        }
+        return promptRegistry.get(templateName, context).content();
     }
 }
