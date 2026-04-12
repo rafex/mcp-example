@@ -79,6 +79,45 @@ Después de editar:
 - verificar compilación o ejecución básica de lo tocado
 - revisar que la documentación siga siendo correcta
 
+## Estructura de Contenedores
+
+El proyecto incluye una infraestructura Docker completa con Nginx como balanceador de carga:
+
+### Balanceo de Carga Round Robin
+
+- **Hello API**: Ruta `/hello/` distribuye peticiones entre Python (`:8080`) y Java (`:8081`)
+- **Date API**: Ruta `/date/` distribuye peticiones entre Python (`:8090`) y Java (`:8091`)
+
+### Endpoints Disponibles
+
+| Ruta | Modo | Backends |
+|------|------|----------|
+| `/hello/` | Round Robin | Python + Java |
+| `/hello/python/` | Directo | Solo Python |
+| `/hello/java/` | Directo | Solo Java |
+| `/date/` | Round Robin | Python + Java |
+| `/date/python/` | Directo | Solo Python |
+| `/date/java/` | Directo | Solo Java |
+
+### Comandos Docker
+
+```bash
+# Construir todas las imágenes
+just docker-build-all
+
+# Levantar todos los servicios
+just docker-up-all
+
+# Ver logs
+just docker-logs
+
+# Health check
+curl http://localhost:8085/health
+
+# Status del balanceo
+curl http://localhost:8085/status
+```
+
 ## Prioridades
 
 Orden de prioridad:

@@ -21,24 +21,43 @@ container/
 
 ## Servicios Disponibles
 
-### Nginx Gateway (Punto de Entrada Único)
+### Nginx Gateway (Punto de Entrada Único con Balanceo de Carga)
 
 **Puerto:** `8085`
 
-El Nginx actúa como punto de entrada único para todos los servicios:
+El Nginx actúa como punto de entrada único y balanceador de carga con **Round Robin** entre los backends Python y Java.
 
-| Servicio | Ruta Proxy | Backend Real |
-|----------|------------|--------------|
-| Hello Python | `/hello/python/` | `hello-python-api:8080` |
-| Hello Java | `/hello/java/` | `hello-java-api:8081` |
-| Hello (default) | `/hello/` | `hello-python-api:8080` |
-| Date Python | `/date/python/` | `date-python-api:8090` |
-| Date Java | `/date/java/` | `date-java-api:8091` |
-| Date (default) | `/date/` | `date-python-api:8090` |
+#### Arquitectura de Balanceo
 
-### Endpoints de Salud
+```
+Client Request (8085)
+    ↓
+Nginx Gateway
+    ↓
+┌─────────────────┬─────────────────┐
+│   Round Robin   │   Round Robin   │
+│    Hello API    │    Date API     │
+├─────────┬───────┴───────┬─────────┤
+│ Python  │    Java       │ Python  │ Java
+│ 8080    │    8081       │ 8090    │ 8091
+└─────────┴───────────────┴─────────┴───────
+```
+
+#### Rutas Disponibles
+
+| Ruta | Modo | Descripción |
+|------|------|-------------|
+| `/hello/` | **Round Robin** | Distribuye peticiones entre Python y Java |
+| `/hello/python/` | Directo | Solo backend Python |
+| `/hello/java/` | Directo | Solo backend Java |
+| `/date/` | **Round Robin** | Distribuye peticiones entre Python y Java |
+| `/date/python/` | Directo | Solo backend Python |
+| `/date/java/` | Directo | Solo backend Java |
+
+#### Endpoints de Salud y Status
 
 - **Health Check:** `http://localhost:8085/health`
+- **Status:** `http://localhost:8085/status` (muestra configuración de balanceo)
 
 ## Uso
 
@@ -96,35 +115,62 @@ docker-compose -f container/docker-compose.yml up -d nginx
 
 ## Ejemplos de Uso
 
-### Hello API (Python - Default)
+### Balanceo de Carga Round Robin
 
+Cuando usas las rutas base (`/hello/` o `/date/`), las peticiones se distribuyen automáticamente entre Python y Java usando Round Robin.
+
+**Ejemplo 1: Hello API con balanceo**
 ```bash
-curl http://localhost:8085/hello/
-# o especificando el lenguaje
+# Ejecuta esto 4 veces y verás que las peticiones alternan entre Python y Java
 curl http://localhost:8085/hello/?name=Mundo&lang=es
 ```
 
-### Hello API (Java)
-
+**Ejemplo 2: Date API con balanceo**
 ```bash
-curl http://localhost:8085/hello/java/
-```
-
-### Date API (Python - Default)
-
-```bash
-# Requiere autenticación
+# Ejecuta esto 4 veces y verás que las peticiones alternan entre Python y Java
 curl -H "Authorization: Bearer dev-date-token" \
      -H "X-Date-Client: mcp-date-client" \
      http://localhost:8085/date/time?location=mx-central
 ```
 
-### Date API (Java)
+### Acceso Directo a Backends Específicos
 
+Si necesitas probar un backend específico:
+
+**Hello API Python:**
+```bash
+curl http://localhost:8085/hello/python/?name=Mundo&lang=es
+```
+
+**Hello API Java:**
+```bash
+curl http://localhost:8085/hello/java/?name=Mundo&lang=es
+```
+
+**Date API Python:**
+```bash
+curl -H "Authorization: Bearer dev-date-token" \
+     -H "X-Date-Client: mcp-date-client" \
+     http://localhost:8085/date/python/time?location=mx-central
+```
+
+**Date API Java:**
 ```bash
 curl -H "Authorization: Bearer dev-date-token" \
      -H "X-Date-Client: mcp-date-client" \
      http://localhost:8085/date/java/time?location=us
+```
+
+### Ver Estado del Balanceo
+
+```bash
+curl http://localhost:8085/status
+```
+
+### Health Check
+
+```bash
+curl http://localhost:8085/health
 ```
 
 ## Variables de Entorno

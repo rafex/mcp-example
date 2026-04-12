@@ -1,7 +1,7 @@
 FROM nginx:alpine
 
 # Copiar configuración de Nginx
-COPY nginx.conf /etc/nginx/nginx.conf
+COPY container/nginx/nginx.conf /etc/nginx/nginx.conf
 
 # Crear directorio para documentación
 RUN mkdir -p /usr/share/nginx/html
