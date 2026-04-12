@@ -1,0 +1,16 @@
+FROM python:3.12-slim
+
+WORKDIR /app
+
+ENV DATE_API_HOST=0.0.0.0
+ENV DATE_API_PORT=8090
+ENV DATE_API_TOKEN=dev-date-token
+ENV DATE_API_CLIENT_ID=mcp-date-client
+
+COPY backend/api-date/python /app/backend/api-date/python
+
+RUN mkdir -p /app/logs
+
+EXPOSE 8090
+
+CMD ["python3", "backend/api-date/python/server.py"]

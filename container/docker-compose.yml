@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  # Hello API Services
+  hello-python-api:
+    build:
+      context: ../..
+      dockerfile: container/hello/Dockerfile.python-api
+    image: mcp-example/hello-python-api:latest
+    environment:
+      - HELLO_API_HOST=0.0.0.0
+      - HELLO_API_PORT=8080
+    volumes:
+      - ../../logs:/app/logs
+    networks:
+      - backend-network
+
+  hello-java-api:
+    build:
+      context: ../..
+      dockerfile: container/hello/Dockerfile.java-api
+    image: mcp-example/hello-java-api:latest
+    environment:
+      - HELLO_API_HOST=0.0.0.0
+      - HELLO_API_PORT=8081
+    volumes:
+      - ../../logs:/app/logs
+    networks:
+      - backend-network
+
+  # Date API Services
+  date-python-api:
+    build:
+      context: ../..
+      dockerfile: container/date/Dockerfile.python-api
+    image: mcp-example/date-python-api:latest
+    environment:
+      - DATE_API_HOST=0.0.0.0
+      - DATE_API_PORT=8090
+      - DATE_API_TOKEN=${DATE_API_TOKEN:-dev-date-token}
+      - DATE_API_CLIENT_ID=${DATE_API_CLIENT_ID:-mcp-date-client}
+    volumes:
+      - ../../logs:/app/logs
+    networks:
+      - backend-network
+
+  date-java-api:
+    build:
+      context: ../..
+      dockerfile: container/date/Dockerfile.java-api
+    image: mcp-example/date-java-api:latest
+    environment:
+      - DATE_API_HOST=0.0.0.0
+      - DATE_API_PORT=8091
+      - DATE_API_TOKEN=${DATE_API_TOKEN:-dev-date-token}
+      - DATE_API_CLIENT_ID=${DATE_API_CLIENT_ID:-mcp-date-client}
+    volumes:
+      - ../../logs:/app/logs
+    networks:
+      - backend-network
+
+  # Nginx Gateway
+  nginx:
+    build:
+      context: ../..
+      dockerfile: container/nginx/Dockerfile
+    image: mcp-example/nginx-gateway:latest
+    ports:
+      - "8085:8085"
+    depends_on:
+      - hello-python-api
+      - hello-java-api
+      - date-python-api
+      - date-java-api
+    networks:
+      - backend-network
+
+networks:
+  backend-network:
+    driver: bridge

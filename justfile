@@ -66,3 +66,48 @@ docker-up-hello:
 
 docker-down-hello:
     make docker-down-hello
+
+# Docker compose commands
+docker-build-all:
+    docker-compose -f container/docker-compose.yml build
+
+docker-up-all:
+    docker-compose -f container/docker-compose.yml up -d
+
+docker-down-all:
+    docker-compose -f container/docker-compose.yml down
+
+docker-logs:
+    docker-compose -f container/docker-compose.yml logs -f
+
+docker-logs-nginx:
+    docker-compose -f container/docker-compose.yml logs -f nginx
+
+docker-build-nginx:
+    docker build -f container/nginx/Dockerfile -t mcp-example/nginx-gateway:latest .
+
+docker-up-nginx:
+    docker-compose -f container/docker-compose.yml up -d nginx
+
+# Date API Docker commands
+docker-build-python-api-date:
+    docker build -f container/date/Dockerfile.python-api -t mcp-example/date-python-api:latest .
+
+docker-build-java-api-date:
+    docker build -f container/date/Dockerfile.java-api -t mcp-example/date-java-api:latest .
+
+docker-up-date:
+    docker-compose -f container/docker-compose.yml up -d date-python-api date-java-api
+
+# Individual service commands
+docker-up-hello-python:
+    docker-compose -f container/docker-compose.yml up -d hello-python-api
+
+docker-up-hello-java:
+    docker-compose -f container/docker-compose.yml up -d hello-java-api
+
+docker-up-date-python:
+    docker-compose -f container/docker-compose.yml up -d date-python-api
+
+docker-up-date-java:
+    docker-compose -f container/docker-compose.yml up -d date-java-api

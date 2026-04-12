@@ -1,0 +1,25 @@
+FROM eclipse-temurin:21-jdk-jammy AS build
+
+WORKDIR /app
+
+COPY backend/api-date/java/src /app/backend/api-date/java/src
+
+RUN mkdir -p /app/build \
+    && javac -d /app/build /app/backend/api-date/java/src/*.java
+
+FROM eclipse-temurin:21-jre-jammy
+
+WORKDIR /app
+
+ENV DATE_API_HOST=0.0.0.0
+ENV DATE_API_PORT=8091
+ENV DATE_API_TOKEN=dev-date-token
+ENV DATE_API_CLIENT_ID=mcp-date-client
+
+COPY --from=build /app/build /app/build
+
+RUN mkdir -p /app/logs
+
+EXPOSE 8091
+
+CMD ["java", "-cp", "/app/build", "DateApiServer"]

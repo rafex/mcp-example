@@ -45,7 +45,7 @@ public final class HelloApiServer {
             String method = exchange.getRequestMethod().toUpperCase();
 
             if (allowedMethods(path) == null) {
-                LOGGER.warning("request path=" + path + " method=" + method + " status=404 client_ip=" + resolveClientIp(exchange));
+                logRequest(exchange, 404, path, null, false);
                 writeJson(exchange, 404, "{\"error\":\"Not Found\"}", null);
                 return;
             }
@@ -55,7 +55,7 @@ public final class HelloApiServer {
                 case "POST" -> handlePost(exchange, path);
                 case "OPTIONS" -> handleOptions(exchange);
                 default -> {
-                    LOGGER.warning("request path=" + path + " method=" + method + " status=405 client_ip=" + resolveClientIp(exchange));
+                    logRequest(exchange, 405, path, null, false);
                     writeJson(exchange, 405, "{\"error\":\"Method Not Allowed\"}", allowedMethods(path));
                 }
             }
@@ -89,14 +89,14 @@ public final class HelloApiServer {
 
         private void handlePost(HttpExchange exchange, String path) throws IOException {
             if (!"/hello".equals(path)) {
-                LOGGER.warning("request path=" + path + " method=POST status=405 client_ip=" + resolveClientIp(exchange));
+                logRequest(exchange, 405, path, null, false);
                 writeJson(exchange, 405, "{\"error\":\"Method Not Allowed\"}", allowedMethods(path));
                 return;
             }
             String body = readRequestBody(exchange.getRequestBody());
             Map<String, String> requestBody = parseSimpleJsonObject(body);
             if (requestBody == null) {
-                LOGGER.warning("request path=/hello method=POST status=400 client_ip=" + resolveClientIp(exchange) + " invalid_json=true");
+                logRequest(exchange, 400, "/hello", null, false);
                 writeJson(exchange, 400, "{\"error\":\"Invalid JSON body\"}", ALLOW_HEADER);
                 return;
             }
@@ -198,7 +198,7 @@ public final class HelloApiServer {
         try {
             Files.createDirectories(LOGS_DIR);
             Logger logger = Logger.getLogger("backend.api_hello.java");
-            logger.setUseParentHandlers(false);
+            logger.setUseParentHandlers(true);
             if (logger.getHandlers().length == 0) {
                 FileHandler fileHandler = new FileHandler(LOG_FILE.toString(), true);
                 fileHandler.setEncoding(StandardCharsets.UTF_8.name());
@@ -210,6 +210,21 @@ public final class HelloApiServer {
         } catch (IOException exception) {
             throw new IllegalStateException("Unable to configure logger at " + LOG_FILE, exception);
         }
+    }
+
+    private static void logRequest(HttpExchange exchange, int statusCode, String path, String detail, boolean authFailed) {
+        StringBuilder message = new StringBuilder()
+            .append("request path=").append(path)
+            .append(" method=").append(exchange.getRequestMethod())
+            .append(" status=").append(statusCode)
+            .append(" client_ip=").append(resolveClientIp(exchange));
+        if (detail != null && !detail.isBlank()) {
+            message.append(" detail=").append(detail);
+        }
+        if (authFailed) {
+            message.append(" auth_failed=true");
+        }
+        LOGGER.info(message.toString());
     }
 
     private static String resolveClientIp(HttpExchange exchange) {

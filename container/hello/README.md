@@ -1,58 +1,62 @@
-# Container Hello
+# Container Hello API
 
-Esta carpeta contiene la forma de ejecutar los backends REST de `hello` dentro de contenedores.
-
-La idea es poder probar:
-
-- el backend Python sin instalar dependencias locales extra
-- el backend Java sin tener Java instalado en la máquina anfitriona
+Contiene los Dockerfiles para los servicios Hello API (Python y Java).
 
 ## Archivos
 
-- `Dockerfile.python-api`: imagen para `backend/api-hello/python`
-- `Dockerfile.java-api`: imagen para `backend/api-hello/java`
-- `compose.yaml`: levanta ambos servicios juntos
+- `Dockerfile.python-api`: Imagen para `backend/api-hello/python`
+- `Dockerfile.java-api`: Imagen para `backend/api-hello/java`
 
-## Construir imágenes
+## Uso
 
-Desde la raíz del repositorio:
+Este directorio es parte de la orquestación completa en `container/docker-compose.yml`.
 
-```bash
-just docker-build-python-api-hello
-just docker-build-java-api-hello
-```
-
-## Ejecutar una imagen
-
-Python:
+### Construir individualmente
 
 ```bash
-just docker-run-python-api-hello
+docker build -f container/hello/Dockerfile.python-api -t mcp-example/hello-python-api:latest .
+docker build -f container/hello/Dockerfile.java-api -t mcp-example/hello-java-api:latest .
 ```
 
-Java:
+### Ejecutar individualmente (sin compose)
 
+**Python API:**
 ```bash
-just docker-run-java-api-hello
+docker run -d -p 8080:8080 \
+  -v $(pwd)/logs:/app/logs \
+  mcp-example/hello-python-api:latest
 ```
 
-## Levantar ambos servicios
-
+**Java API:**
 ```bash
-just docker-up-hello
+docker run -d -p 8081:8081 \
+  -v $(pwd)/logs:/app/logs \
+  mcp-example/hello-java-api:latest
 ```
 
-Para bajarlos:
+## Endpoints
 
-```bash
-just docker-down-hello
-```
+### Python API
+- URL: `http://localhost:8080/hello/`
+- Health: `http://localhost:8080/hello/`
 
-## Puertos
+### Java API
+- URL: `http://localhost:8081/hello/`
+- Health: `http://localhost:8081/hello/`
 
-- Python API: `http://127.0.0.1:8080/hello`
-- Java API: `http://127.0.0.1:8081/hello`
+## A través de Nginx (recomendado)
+
+Usa el gateway unificado en `http://localhost:8085/`:
+- Hello Python: `http://localhost:8085/hello/python/`
+- Hello Java: `http://localhost:8085/hello/java/`
+- Hello (default): `http://localhost:8085/hello/`
 
 ## Logs
 
-Ambos contenedores montan la carpeta `logs/` de la raíz del repositorio en `/app/logs`, por lo que los logs siguen quedando visibles fuera del contenedor.
+Los logs se escriben en:
+- Contenedor: `/app/logs/`
+- Host: `$(pwd)/logs/` (montado desde la raíz del repositorio)
+
+Archivos:
+- `backend-api-hello-python.log`
+- `backend-api-hello-java.log`
