@@ -85,19 +85,25 @@ El proyecto incluye una infraestructura Docker completa con Nginx como balancead
 
 ### Balanceo de Carga Round Robin
 
-- **Hello API**: Ruta `/hello/` distribuye peticiones entre Python (`:8080`) y Java (`:8081`)
-- **Date API**: Ruta `/date/` distribuye peticiones entre Python (`:8090`) y Java (`:8091`)
+- **Hello API**: Ruta `/hello` distribuye peticiones entre Python (`:8080`) y Java (`:8081`)
+- **Date API**: Ruta `/date` distribuye peticiones entre Python (`:8090`) y Java (`:8091`)
 
 ### Endpoints Disponibles
 
 | Ruta | Modo | Backends |
 |------|------|----------|
-| `/hello/` | Round Robin | Python + Java |
-| `/hello/python/` | Directo | Solo Python |
-| `/hello/java/` | Directo | Solo Java |
-| `/date/` | Round Robin | Python + Java |
-| `/date/python/` | Directo | Solo Python |
-| `/date/java/` | Directo | Solo Java |
+| `/hello` | Round Robin | Python + Java |
+| `/hello/python` | Directo | Solo Python |
+| `/hello/java` | Directo | Solo Java |
+| `/date` | Round Robin | Python + Java |
+| `/date/python` | Directo | Solo Python |
+| `/date/java` | Directo | Solo Java |
+
+### Headers Identificadores
+
+Cada backend envía un header `X-Powered-By` para identificar el lenguaje:
+- Python: `X-Powered-By: Python`
+- Java: `X-Powered-By: Java` (o `X-powered-by: Java` según Nginx)
 
 ### Comandos Docker
 
