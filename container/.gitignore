@@ -1,0 +1,33 @@
+# Directorios de build generados
+build/
+dist/
+
+# Directorios de dependencias
+node_modules/
+
+# Archivos de configuración locales
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Archivos de IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Archivos temporales
+*.tmp
+*.temp
+
+# Resultados de pruebas
+coverage/
+htmlcov/

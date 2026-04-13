@@ -1,21 +1,98 @@
 # Sistema operativo
 .DS_Store
+Thumbs.db
+*.DS_Store
 
-# Editores
+# Editores y IDE
 .idea/
 .vscode/
 *.swp
 *.swo
 *~
+*.sublime-project
+*.sublime-workspace
 
 # Logs y temporales globales
 *.log
 *.tmp
 *.temp
+*.pid
+*.seed
+*.pid.lock
 
 # opencode (local, no versionar)
 .opencode/sessions.db*
 .opencode/worktrees/
 .opencode/node_modules/
+.opencode/*.db
 # opencode — exportaciones de sesión
 session-ses_*.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+replay_pid*
+build/
+out/
+target/
+*.iml
+*.ipr
+*.iws
+.project
+.classpath
+.settings/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Logs de contenedores
+container/*/logs/
+logs/
+
+# Resultados de pruebas
+coverage/
+htmlcov/
+.test-reports/
+test-results/
+
+# Archivos de configuración locales
+.env.local
+.env.*.local
+
+# Archivos temporales de desarrollo
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db

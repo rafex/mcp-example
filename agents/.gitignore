@@ -1,0 +1,22 @@
+# Directorios de build de Maven/Gradle
+target/
+build/
+out/
+
+# Archivos de IDE
+.classpath
+.project
+.settings/
+*.iml
+.idea/
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Archivos temporales
+*.tmp
+*.temp

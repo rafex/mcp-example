@@ -1,0 +1,10 @@
+# Archivos generados por herramientas de API
+*.json
+!mcp-hello.http.json
+
+# Archivos temporales de documentación
+*.tmp
+
+# Archivos de sistema
+.DS_Store
+Thumbs.db
