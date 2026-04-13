@@ -47,12 +47,14 @@ Nginx Gateway
 
 | Ruta | Modo | Descripción |
 |------|------|-------------|
-| `/hello/` | **Round Robin** | Distribuye peticiones entre Python y Java |
-| `/hello/python/` | Directo | Solo backend Python |
-| `/hello/java/` | Directo | Solo backend Java |
-| `/date/` | **Round Robin** | Distribuye peticiones entre Python y Java |
-| `/date/python/` | Directo | Solo backend Python |
-| `/date/java/` | Directo | Solo backend Java |
+| `/hello` | **Round Robin** | Distribuye peticiones entre Python y Java |
+| `/hello/python` | Directo | Solo backend Python |
+| `/hello/java` | Directo | Solo backend Java |
+| `/date` | **Round Robin** | Distribuye peticiones entre Python y Java |
+| `/date/python` | Directo | Solo backend Python |
+| `/date/java` | Directo | Solo backend Java |
+| `/hello/languages` | **Round Robin** | Lista idiomas soportados |
+| `/date/time` | **Round Robin** | Obtiene hora actual |
 
 #### Endpoints de Salud y Status
 
@@ -117,12 +119,12 @@ docker-compose -f container/docker-compose.yml up -d nginx
 
 ### Balanceo de Carga Round Robin
 
-Cuando usas las rutas base (`/hello/` o `/date/`), las peticiones se distribuyen automáticamente entre Python y Java usando Round Robin.
+Cuando usas las rutas base (`/hello` o `/date`), las peticiones se distribuyen automáticamente entre Python y Java usando Round Robin.
 
 **Ejemplo 1: Hello API con balanceo**
 ```bash
 # Ejecuta esto 4 veces y verás que las peticiones alternan entre Python y Java
-curl http://localhost:8085/hello/?name=Mundo&lang=es
+curl http://localhost:8085/hello?name=Mundo&lang=es
 ```
 
 **Ejemplo 2: Date API con balanceo**
@@ -139,12 +141,12 @@ Si necesitas probar un backend específico:
 
 **Hello API Python:**
 ```bash
-curl http://localhost:8085/hello/python/?name=Mundo&lang=es
+curl http://localhost:8085/hello/python?name=Mundo&lang=es
 ```
 
 **Hello API Java:**
 ```bash
-curl http://localhost:8085/hello/java/?name=Mundo&lang=es
+curl http://localhost:8085/hello/java?name=Mundo&lang=es
 ```
 
 **Date API Python:**
@@ -159,6 +161,20 @@ curl -H "Authorization: Bearer dev-date-token" \
 curl -H "Authorization: Bearer dev-date-token" \
      -H "X-Date-Client: mcp-date-client" \
      http://localhost:8085/date/java/time?location=us
+```
+
+### Verificar Headers Identificadores
+
+Puedes verificar qué backend está respondiendo usando el header `X-Powered-By`:
+
+```bash
+# Ver header identificador
+curl -I http://localhost:8085/hello?name=User
+
+# Ver distribución de peticiones (Python vs Java)
+for i in {1..10}; do
+  curl -s -D - "http://localhost:8085/hello?name=User$i" -o /dev/null | grep "X-Powered-By"
+done
 ```
 
 ### Ver Estado del Balanceo
