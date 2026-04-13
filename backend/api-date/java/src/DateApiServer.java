@@ -228,6 +228,7 @@ public final class DateApiServer {
     private static void writeJson(HttpExchange exchange, int statusCode, String json, String allowHeader) throws IOException {
         byte[] body = json.getBytes(StandardCharsets.UTF_8);
         exchange.getResponseHeaders().set("Content-Type", "application/json; charset=utf-8");
+        exchange.getResponseHeaders().set("X-Powered-By", "Java");
         if (allowHeader != null) {
             exchange.getResponseHeaders().set("Allow", allowHeader);
         }
