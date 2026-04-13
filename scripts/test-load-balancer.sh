@@ -21,9 +21,12 @@ for i in range(1, 11):
         ["curl", "-s", "-D", "-", f"http://localhost:8085/hello?name=User{i}", "-o", "/dev/null"],
         capture_output=True, text=True
     )
-    match = re.search(r"X-powered-by:\s*(\w+)", result.stderr, re.IGNORECASE)
+    # Combinar stdout y stderr ya que curl puede enviar headers a stderr o stdout
+    output = result.stdout + result.stderr
+    # Buscar header X-Powered-By (insensible a mayúsculas/minúsculas)
+    match = re.search(r"x-powered-by:\s*(\w+)", output, re.IGNORECASE)
     if match:
-        results.append(match.group(1))
+        results.append(match.group(1).capitalize())
 
 from collections import Counter
 counts = Counter(results)
