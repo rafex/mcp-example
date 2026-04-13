@@ -10,7 +10,7 @@ import java.nio.charset.StandardCharsets;
 
 public final class DateMcpServer {
     private static final String PROTOCOL_VERSION = "2024-11-05";
-    private static final String DATE_API_BASE_URL = System.getenv().getOrDefault("DATE_API_BASE_URL", "http://127.0.0.1:8091");
+    private static final String DATE_API_BASE_URL = System.getenv().getOrDefault("DATE_API_BASE_URL", "http://127.0.0.1:8085");
     private static final String DATE_API_TOKEN = System.getenv().getOrDefault("DATE_API_TOKEN", "dev-date-token");
     private static final String DATE_API_CLIENT_ID = System.getenv().getOrDefault("DATE_API_CLIENT_ID", "mcp-date-client");
     private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();

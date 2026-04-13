@@ -13,7 +13,7 @@ import java.util.Map;
 public final class HelloMcpServer {
     private static final String PROTOCOL_VERSION = "2024-11-05";
     private static final String HELLO_API_BASE_URL =
-        System.getenv().getOrDefault("HELLO_API_BASE_URL", "http://127.0.0.1:8081");
+        System.getenv().getOrDefault("HELLO_API_BASE_URL", "http://127.0.0.1:8085");
     private static final HttpClient HTTP_CLIENT = HttpClient.newHttpClient();
 
     private HelloMcpServer() {

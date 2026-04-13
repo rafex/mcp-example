@@ -11,7 +11,7 @@ from urllib.request import Request, urlopen
 
 SERVER_INFO = {"name": "date-python-mcp", "version": "0.1.0"}
 PROTOCOL_VERSION = "2024-11-05"
-DATE_API_BASE_URL = os.getenv("DATE_API_BASE_URL", "http://127.0.0.1:8090")
+DATE_API_BASE_URL = os.getenv("DATE_API_BASE_URL", "http://127.0.0.1:8085")
 DATE_API_TOKEN = os.getenv("DATE_API_TOKEN", "dev-date-token")
 DATE_API_CLIENT_ID = os.getenv("DATE_API_CLIENT_ID", "mcp-date-client")
 

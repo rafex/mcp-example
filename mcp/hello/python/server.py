@@ -10,7 +10,7 @@ from urllib.request import Request, urlopen
 
 SERVER_INFO = {"name": "hello-python-mcp", "version": "0.1.0"}
 PROTOCOL_VERSION = "2024-11-05"
-HELLO_API_BASE_URL = os.getenv("HELLO_API_BASE_URL", "http://127.0.0.1:8080")
+HELLO_API_BASE_URL = os.getenv("HELLO_API_BASE_URL", "http://127.0.0.1:8085")
 
 
 def main() -> None:

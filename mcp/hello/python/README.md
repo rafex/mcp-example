@@ -150,16 +150,16 @@ O directamente:
 python3 mcp/hello/python/server.py
 ```
 
-Por defecto, el wrapper apunta a:
+Por defecto, el wrapper apunta al gateway Nginx:
 
 ```text
-http://127.0.0.1:8080
+http://127.0.0.1:8085
 ```
 
 Puedes cambiarlo con:
 
 ```bash
-HELLO_API_BASE_URL=http://127.0.0.1:8080 python3 mcp/hello/python/server.py
+HELLO_API_BASE_URL=http://127.0.0.1:8085 python3 mcp/hello/python/server.py
 ```
 
 ## Cómo probar manualmente

@@ -37,7 +37,7 @@ En otras palabras, el modelo ve capacidades de negocio y no detalles de infraest
 
 Valores por defecto:
 
-- `DATE_API_BASE_URL=http://127.0.0.1:8091`
+- `DATE_API_BASE_URL=http://127.0.0.1:8085` (gateway Nginx)
 - `DATE_API_TOKEN=dev-date-token`
 - `DATE_API_CLIENT_ID=mcp-date-client`
 

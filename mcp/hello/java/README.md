@@ -146,16 +146,16 @@ make build-java-mcp-hello
 java -cp mcp/hello/java/build HelloMcpServer
 ```
 
-Por defecto, el wrapper apunta a:
+Por defecto, el wrapper apunta al gateway Nginx:
 
 ```text
-http://127.0.0.1:8081
+http://127.0.0.1:8085
 ```
 
 Puedes cambiarlo con:
 
 ```bash
-HELLO_API_BASE_URL=http://127.0.0.1:8081 java -cp mcp/hello/java/build HelloMcpServer
+HELLO_API_BASE_URL=http://127.0.0.1:8085 java -cp mcp/hello/java/build HelloMcpServer
 ```
 
 ## Qué estudiar aquí
