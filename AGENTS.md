@@ -10,12 +10,14 @@ El proyecto enseña cómo construir APIs REST y servidores MCP en Python y Java 
 
 El primer ejemplo oficial es `hello`.
 
+Hoy el repositorio también incluye `date` y `openweather` como ejemplos adicionales.
+
 Su estructura objetivo es:
 
 - `backend/api-hello/python`
 - `backend/api-hello/java`
-- `mcp/hello/python`
-- `mcp/hello/java`
+- `mcp-server/hello/python`
+- `mcp-server/hello/java`
 
 Cada implementación debe mantener la misma intención funcional:
 
@@ -49,7 +51,7 @@ Cada implementación debe mantener la misma intención funcional:
 ## Convenciones de documentación
 
 - Cada ejemplo importante debe tener su propio `README.md`.
-- Los directorios MCP deben incluir un `README.md` detallado y didáctico.
+- Los directorios bajo `mcp-server/` deben incluir un `README.md` detallado y didáctico.
 - La documentación debe explicar el "qué", el "por qué" y el "cómo ejecutarlo".
 - Si un cambio altera la estructura o los comandos, actualizar la documentación en el mismo cambio.
 

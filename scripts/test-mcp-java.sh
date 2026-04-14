@@ -109,7 +109,7 @@ messages = [
 ]
 
 proc = subprocess.Popen(
-    ["java", "-cp", "mcp/hello/java/build", "HelloMcpServer"],
+    ["java", "-cp", "mcp-server/hello/java/build", "HelloMcpServer"],
     stdin=subprocess.PIPE,
     stdout=subprocess.PIPE,
     stderr=sys.stderr,

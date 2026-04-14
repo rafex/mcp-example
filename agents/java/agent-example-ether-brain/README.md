@@ -4,7 +4,7 @@ Ejemplo de agente Java que conecta tres piezas:
 
 - `ether-brain` como runtime de agente
 - `ether-ai-deepseek` como adaptador de modelo
-- `mcp/hello/java` como tool MCP local
+- `mcp-server/hello/java` como tool MCP local
 
 La idea es mostrar una evolucion del ejemplo `hello`: el servidor MCP sigue siendo pequeno y didactico, pero ahora un agente lo usa como herramienta dentro de un loop de decision.
 
@@ -44,7 +44,7 @@ Sin usar DeepSeek, puedes probar la integracion MCP local:
 just run-java-agent-example-ether-brain-check-mcp
 ```
 
-El comando arranca `mcp/hello/java`, ejecuta `say_hello` y muestra el JSON estructurado devuelto por el servidor.
+El comando arranca `mcp-server/hello/java`, ejecuta `say_hello` y muestra el JSON estructurado devuelto por el servidor.
 
 Para revisar idiomas soportados por el MCP:
 

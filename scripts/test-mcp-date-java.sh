@@ -9,9 +9,9 @@ export DATE_API_BASE_URL="http://127.0.0.1:${DATE_API_PORT}"
 export DATE_API_TOKEN=dev-date-token
 export DATE_API_CLIENT_ID=mcp-date-client
 
-mkdir -p backend/api-date/java/build mcp/date/java/build
+mkdir -p backend/api-date/java/build mcp-server/date/java/build
 javac -d backend/api-date/java/build backend/api-date/java/src/*.java
-javac -d mcp/date/java/build mcp/date/java/src/*.java
+javac -d mcp-server/date/java/build mcp-server/date/java/src/*.java
 
 java -cp backend/api-date/java/build DateApiServer >/tmp/mcp-example-date-java-api.log 2>&1 &
 BACKEND_PID=$!
@@ -55,7 +55,7 @@ messages = [
     {"jsonrpc": "2.0", "id": 8, "method": "tools/call", "params": {"name": "get_current_time", "arguments": {"location": "jp", "ip": "203.0.113.20"}}},
 ]
 
-proc = subprocess.Popen(["java", "-cp", "mcp/date/java/build", "DateMcpServer"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=sys.stderr)
+proc = subprocess.Popen(["java", "-cp", "mcp-server/date/java/build", "DateMcpServer"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=sys.stderr)
 try:
     assert proc.stdin and proc.stdout
     for message in messages:

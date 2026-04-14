@@ -10,10 +10,11 @@ El repositorio está orientado a aprendizaje práctico: código pequeño, sin fr
 
 ## Ejemplos actuales
 
-Hoy el repositorio tiene dos casos de estudio:
+Hoy el repositorio tiene tres casos de estudio:
 
 - `hello`: saludo localizado sin autenticación
 - `date`: consulta de hora por ubicación con autenticación HTTP escondida detrás del MCP
+- `openweather`: wrapper de OpenWeatherMap para clima actual y weather overview
 
 Cada ejemplo incluye:
 
@@ -21,6 +22,10 @@ Cada ejemplo incluye:
 - un backend REST en Java
 - un servidor MCP en Python
 - un servidor MCP en Java
+
+Además, `hello` incluye una variante MCP adicional en Python usando FastMCP:
+
+- `mcp-server/hello-fastmcp/python`
 
 Además, `hello` incluye un agente Java que usa el MCP `hello` a traves de EtherBrain y DeepSeek.
 
@@ -124,6 +129,34 @@ Los tools actuales del MCP `date` son:
 - `get_current_time`
 - `list_supported_locations`
 
+## Comportamiento de `openweather`
+
+Rutas REST:
+
+- `GET /openweather/current`
+- `GET /openweather/overview`
+- `GET /openweather/resources`
+- `GET /openweather/resources/{name}`
+- `GET /openweather/prompts`
+- `GET /openweather/prompts/{name}`
+- `OPTIONS` para todas esas rutas
+
+Este ejemplo usa OpenWeatherMap por detrás:
+
+- Current Weather API 2.5
+- Geocoding API
+- One Call API 3.0 overview
+
+Variables clave:
+
+- `OPENWEATHER_API_KEY` obligatorio
+- `OPENWEATHER_BASE_URL` opcional
+
+Nota operativa:
+
+- `GET /openweather/overview` depende de One Call API 3.0 overview
+- en OpenWeatherMap esa capacidad puede requerir la suscripción correspondiente, además de una API key válida
+
 ## Estructura actual
 
 ```text
@@ -132,6 +165,11 @@ Los tools actuales del MCP `date` son:
 ├── README.md
 ├── Makefile
 ├── justfile
+├── mcp-client/
+│   ├── README.md
+│   ├── pyproject.toml
+│   ├── uv.lock
+│   └── main.py
 ├── container/
 │   └── hello/
 │       ├── README.md
@@ -152,13 +190,21 @@ Los tools actuales del MCP `date` son:
 │   │       ├── README.md
 │   │       ├── date_service.py
 │   │       └── server.py
-│   └── api-hello/
+│   ├── api-hello/
+│   │   ├── java/
+│   │   │   ├── README.md
+│   │   │   └── src/
+│   │   └── python/
+│   │       ├── README.md
+│   │       ├── hello_service.py
+│   │       └── server.py
+│   └── api-openweather/
 │       ├── java/
 │       │   ├── README.md
 │       │   └── src/
 │       └── python/
 │           ├── README.md
-│           ├── hello_service.py
+│           ├── openweather_service.py
 │           └── server.py
 ├── agents/
 │   └── java/
@@ -166,7 +212,7 @@ Los tools actuales del MCP `date` son:
 │           ├── README.md
 │           ├── pom.xml
 │           └── src/
-└── mcp/
+└── mcp-server/
     ├── docs/
     │   ├── README.md
     │   ├── what-is-mcp-es.md
@@ -175,6 +221,12 @@ Los tools actuales del MCP `date` son:
     │   ├── stdio-vs-network-en.md
     │   ├── mcp-server-es.md
     │   └── mcp-server-en.md
+    ├── hello-fastmcp/
+    │   └── python/
+    │       ├── README.md
+    │       ├── hello_api_client.py
+    │       ├── requirements.txt
+    │       └── server.py
     ├── date/
     │   ├── java/
     │   │   ├── README.md
@@ -182,13 +234,20 @@ Los tools actuales del MCP `date` son:
     │   └── python/
     │       ├── README.md
     │       └── server.py
-    └── hello/
+    ├── hello/
+    │   ├── java/
+    │   │   ├── README.md
+    │   │   └── src/
+    │   └── python/
+    │       ├── README.md
+    │       ├── hello_service.py
+    │       └── server.py
+    └── openweather/
         ├── java/
         │   ├── README.md
         │   └── src/
         └── python/
             ├── README.md
-            ├── hello_service.py
             └── server.py
 ```
 
@@ -227,6 +286,18 @@ Ejecutar API REST `date` en Java:
 just run-java-api-date
 ```
 
+Ejecutar API REST `openweather` en Python:
+
+```bash
+OPENWEATHER_API_KEY="tu_api_key" just run-python-api-openweather
+```
+
+Ejecutar API REST `openweather` en Java:
+
+```bash
+OPENWEATHER_API_KEY="tu_api_key" just run-java-api-openweather
+```
+
 Construir imagen Docker del backend Python:
 
 ```bash
@@ -251,6 +322,12 @@ Ejecutar MCP en Python:
 just run-python-mcp-hello
 ```
 
+Ejecutar MCP `hello-fastmcp` en Python:
+
+```bash
+just run-python-mcp-hello-fastmcp
+```
+
 Ejecutar MCP en Java:
 
 ```bash
@@ -269,6 +346,18 @@ Ejecutar MCP `date` en Java:
 just run-java-mcp-date
 ```
 
+Ejecutar MCP `openweather` en Python:
+
+```bash
+OPENWEATHER_API_KEY="tu_api_key" OPENWEATHER_API_BASE_URL=http://127.0.0.1:8100 just run-python-mcp-openweather
+```
+
+Ejecutar MCP `openweather` en Java:
+
+```bash
+OPENWEATHER_API_KEY="tu_api_key" OPENWEATHER_API_BASE_URL=http://127.0.0.1:8101 just run-java-mcp-openweather
+```
+
 Probar los MCP wrapper end-to-end:
 
 ```bash
@@ -276,6 +365,32 @@ Probar los MCP wrapper end-to-end:
 ./scripts/test-mcp-java.sh
 ./scripts/test-mcp-date-python.sh
 ./scripts/test-mcp-date-java.sh
+./scripts/test-mcp-openweather-python.sh
+./scripts/test-mcp-openweather-java.sh
+```
+
+Probar un MCP desde un cliente simple en la raíz y ver exactamente qué entrega:
+
+```bash
+cd mcp-client
+uv sync
+uv run python main.py hello python
+uv run python main.py hello-fastmcp python
+uv run python main.py hello java
+uv run python main.py date python
+uv run python main.py date java
+uv run python main.py hello-fastmcp python --catalog-only --base-url http://127.0.0.1:8085
+OPENWEATHER_API_KEY="tu_api_key" uv run python main.py openweather python --catalog-only
+OPENWEATHER_API_KEY="tu_api_key" uv run python main.py openweather java --catalog-only
+```
+
+O usando la interfaz principal del proyecto:
+
+```bash
+just setup-mcp-client
+just run-mcp-client hello python
+just run-mcp-client date java
+OPENWEATHER_API_KEY="tu_api_key" just run-mcp-client openweather python
 ```
 
 Compilar el agente Java con EtherBrain:
@@ -322,6 +437,7 @@ Hoy el ejemplo `hello` funciona así:
 - el backend REST resuelve el saludo y la lista de idiomas
 - el backend REST también expone datos para resources y prompts
 - el MCP Python envuelve al backend REST Python y expone tools, resources y prompts
+- `hello-fastmcp` envuelve el mismo backend REST Python, pero publica las capacidades usando FastMCP
 - el MCP Java envuelve al backend REST Java y expone tools, resources y prompts
 - el agente Java usa el MCP Java como tool local
 
@@ -334,9 +450,51 @@ Hoy el ejemplo `date` funciona así:
 - el MCP Java envuelve al backend REST Java y oculta la autenticación al cliente MCP
 - el cliente MCP solo ve tools, resources y prompts, no los headers del backend
 
+Hoy el ejemplo `openweather` funciona así:
+
+- el backend REST oculta `OPENWEATHER_API_KEY`
+- el backend REST envuelve Current Weather API 2.5 y One Call API 3.0 overview
+- el MCP Python envuelve al backend REST Python
+- el MCP Java envuelve al backend REST Java
+- el cliente MCP ve tools, resources y prompts sin conocer la API externa
+
+## Cliente MCP de prueba
+
+En la raíz del repositorio existe el proyecto `mcp-client/`, un cliente didáctico para inspeccionar los servidores MCP locales.
+
+Este cliente:
+
+- usa `uv`
+- crea su propia `.venv`
+- depende del SDK oficial Python de MCP
+- compila Java cuando corresponde
+- levanta el backend REST del ejemplo elegido en un puerto aislado
+- arranca el servidor MCP correspondiente
+- envía `initialize`
+- lista `tools`, `resources` y `prompts`
+- lee un resource
+- obtiene un prompt
+- ejecuta tools reales para mostrar el payload devuelto
+
+Ejemplos:
+
+```bash
+cd mcp-client
+uv sync
+uv run python main.py hello python
+uv run python main.py hello-fastmcp python --catalog-only
+uv run python main.py hello java --catalog-only
+uv run python main.py date python
+uv run python main.py date java
+OPENWEATHER_API_KEY="tu_api_key" uv run python main.py openweather python
+OPENWEATHER_API_KEY="tu_api_key" uv run python main.py openweather java
+```
+
+Si ya tienes un backend levantado, por ejemplo el gateway Nginx en `http://127.0.0.1:8085`, puedes reutilizarlo con `--base-url` y el cliente no arrancará un backend aislado.
+
 ## Documentación MCP
 
-La carpeta `mcp/docs/` contiene documentación conceptual para estudio.
+La carpeta `mcp-server/docs/` contiene documentación conceptual para estudio.
 
 Ahí se explica:
 

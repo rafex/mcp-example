@@ -23,7 +23,7 @@ public final class HelloMcpClient implements AutoCloseable {
     }
 
     public static HelloMcpClient start(Path repoRoot) throws IOException {
-        Path buildDir = repoRoot.resolve("mcp/hello/java/build");
+        Path buildDir = repoRoot.resolve("mcp-server/hello/java/build");
         if (!Files.isDirectory(buildDir)) {
             throw new IOException("No existe " + buildDir + ". Ejecuta primero make build-java-mcp-hello.");
         }

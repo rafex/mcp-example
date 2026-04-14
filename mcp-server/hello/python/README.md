@@ -147,7 +147,7 @@ just run-python-mcp-hello
 O directamente:
 
 ```bash
-python3 mcp/hello/python/server.py
+python3 mcp-server/hello/python/server.py
 ```
 
 Por defecto, el wrapper apunta al gateway Nginx:
@@ -159,7 +159,7 @@ http://127.0.0.1:8085
 Puedes cambiarlo con:
 
 ```bash
-HELLO_API_BASE_URL=http://127.0.0.1:8085 python3 mcp/hello/python/server.py
+HELLO_API_BASE_URL=http://127.0.0.1:8085 python3 mcp-server/hello/python/server.py
 ```
 
 ## Cómo probar manualmente

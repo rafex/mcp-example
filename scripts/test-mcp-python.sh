@@ -106,7 +106,7 @@ messages = [
 ]
 
 proc = subprocess.Popen(
-    ["python3", "mcp/hello/python/server.py"],
+    ["python3", "mcp-server/hello/python/server.py"],
     stdin=subprocess.PIPE,
     stdout=subprocess.PIPE,
     stderr=sys.stderr,

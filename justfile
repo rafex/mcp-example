@@ -10,6 +10,9 @@ run-java-api-hello:
 run-python-mcp-hello:
     make run-python-mcp-hello
 
+run-python-mcp-hello-fastmcp:
+    make run-python-mcp-hello-fastmcp
+
 build-java-mcp-hello:
     make build-java-mcp-hello
 
@@ -25,6 +28,15 @@ build-java-api-date:
 run-java-api-date:
     make run-java-api-date
 
+run-python-api-openweather:
+    make run-python-api-openweather
+
+build-java-api-openweather:
+    make build-java-api-openweather
+
+run-java-api-openweather:
+    make run-java-api-openweather
+
 run-python-mcp-date:
     make run-python-mcp-date
 
@@ -33,6 +45,21 @@ build-java-mcp-date:
 
 run-java-mcp-date:
     make run-java-mcp-date
+
+run-python-mcp-openweather:
+    make run-python-mcp-openweather
+
+build-java-mcp-openweather:
+    make build-java-mcp-openweather
+
+run-java-mcp-openweather:
+    make run-java-mcp-openweather
+
+setup-mcp-client:
+    make setup-mcp-client
+
+run-mcp-client example language *args='':
+    make run-mcp-client EXAMPLE="{{example}}" LANG="{{language}}" ARGS="{{args}}"
 
 build-java-agent-example-ether-brain:
     make build-java-agent-example-ether-brain

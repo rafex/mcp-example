@@ -14,7 +14,7 @@ Desde la raiz del repositorio:
 just build-java-agent-example-ether-brain
 ```
 
-Ese build recompila primero `mcp/hello/java`, porque el agente lo ejecuta como proceso hijo.
+Ese build recompila primero `mcp-server/hello/java`, porque el agente lo ejecuta como proceso hijo.
 
 ## Verificaciones locales
 
