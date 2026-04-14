@@ -14,7 +14,6 @@ Este proyecto sirve para inspeccionar y probar:
 - `mcp-server/date/python`
 - `mcp-server/date/java`
 - `mcp-server/openweather/python`
-- `mcp-server/openweather/java`
 
 El cliente:
 
@@ -67,7 +66,6 @@ uv run python main.py hello-fastmcp python
 uv run python main.py date python
 uv run python main.py date java
 uv run python main.py openweather python
-uv run python main.py openweather java
 ```
 
 Solo catálogo:

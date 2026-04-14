@@ -10,7 +10,6 @@ JAVA_API_OPENWEATHER_DIR := backend/api-openweather/java
 PYTHON_MCP_DATE_DIR := mcp-server/date/python
 JAVA_MCP_DATE_DIR := mcp-server/date/java
 PYTHON_MCP_OPENWEATHER_DIR := mcp-server/openweather/python
-JAVA_MCP_OPENWEATHER_DIR := mcp-server/openweather/java
 JAVA_AGENT_EXAMPLE_ETHER_BRAIN_DIR := agents/java/agent-example-ether-brain
 CONTAINER_HELLO_DIR := container/hello
 JAVA_API_HELLO_BUILD_DIR := $(JAVA_API_HELLO_DIR)/build
@@ -18,10 +17,9 @@ JAVA_MCP_HELLO_BUILD_DIR := $(JAVA_MCP_HELLO_DIR)/build
 JAVA_API_DATE_BUILD_DIR := $(JAVA_API_DATE_DIR)/build
 JAVA_MCP_DATE_BUILD_DIR := $(JAVA_MCP_DATE_DIR)/build
 JAVA_API_OPENWEATHER_BUILD_DIR := $(JAVA_API_OPENWEATHER_DIR)/build
-JAVA_MCP_OPENWEATHER_BUILD_DIR := $(JAVA_MCP_OPENWEATHER_DIR)/build
 UV_BIN ?= $(HOME)/.local/bin/uv
 
-.PHONY: run-python-api-hello build-java-api-hello run-java-api-hello run-python-mcp-hello run-python-mcp-hello-fastmcp build-java-mcp-hello run-java-mcp-hello run-python-api-date build-java-api-date run-java-api-date run-python-mcp-date build-java-mcp-date run-java-mcp-date run-python-api-openweather build-java-api-openweather run-java-api-openweather run-python-mcp-openweather build-java-mcp-openweather run-java-mcp-openweather setup-mcp-client run-mcp-client build-java-agent-example-ether-brain docker-build-python-api-hello docker-run-python-api-hello docker-build-java-api-hello docker-run-java-api-hello docker-up-hello docker-down-hello
+.PHONY: run-python-api-hello build-java-api-hello run-java-api-hello run-python-mcp-hello run-python-mcp-hello-fastmcp build-java-mcp-hello run-java-mcp-hello run-python-api-date build-java-api-date run-java-api-date run-python-mcp-date build-java-mcp-date run-java-mcp-date run-python-api-openweather build-java-api-openweather run-java-api-openweather run-python-mcp-openweather setup-mcp-client run-mcp-client build-java-agent-example-ether-brain docker-build-python-api-hello docker-run-python-api-hello docker-build-java-api-hello docker-run-java-api-hello docker-up-hello docker-down-hello
 
 run-python-api-hello:
 	python3 $(PYTHON_API_HELLO_DIR)/server.py
@@ -77,14 +75,7 @@ run-java-mcp-date: build-java-mcp-date
 	java -cp $(JAVA_MCP_DATE_BUILD_DIR) DateMcpServer
 
 run-python-mcp-openweather:
-	python3 $(PYTHON_MCP_OPENWEATHER_DIR)/server.py
-
-build-java-mcp-openweather:
-	mkdir -p $(JAVA_MCP_OPENWEATHER_BUILD_DIR)
-	javac -d $(JAVA_MCP_OPENWEATHER_BUILD_DIR) $(JAVA_MCP_OPENWEATHER_DIR)/src/*.java
-
-run-java-mcp-openweather: build-java-mcp-openweather
-	java -cp $(JAVA_MCP_OPENWEATHER_BUILD_DIR) OpenWeatherMcpServer
+	cd mcp-client && $(UV_BIN) run python ../$(PYTHON_MCP_OPENWEATHER_DIR)/server.py
 
 setup-mcp-client:
 	cd mcp-client && $(UV_BIN) sync

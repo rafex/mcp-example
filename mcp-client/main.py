@@ -134,33 +134,15 @@ TARGETS: dict[tuple[str, str], TargetConfig] = {
     ("openweather", "python"): TargetConfig(
         example="openweather",
         language="python",
-        transport="manual",
+        transport="sdk",
         backend_port=18100,
         backend_env_key="OPENWEATHER_API_BASE_URL",
         backend_command=[SYSTEM_PYTHON, "backend/api-openweather/python/server.py"],
-        mcp_command=[SYSTEM_PYTHON, "mcp-server/openweather/python/server.py"],
+        mcp_command=[str(VENV_PYTHON), "mcp-server/openweather/python/server.py"],
         build_commands=[],
         extra_env={},
         resource_uri="openweather://service-overview",
-        prompt_name="current-weather-brief",
-        prompt_arguments={"query": "London,uk", "units": "metric"},
-        tool_calls=[
-            {"name": "get_current_weather", "arguments": {"query": "London,uk", "units": "metric", "lang": "en"}},
-            {"name": "get_weather_overview", "arguments": {"query": "London,uk", "units": "metric"}},
-        ],
-    ),
-    ("openweather", "java"): TargetConfig(
-        example="openweather",
-        language="java",
-        transport="manual",
-        backend_port=18101,
-        backend_env_key="OPENWEATHER_API_BASE_URL",
-        backend_command=["java", "-cp", "backend/api-openweather/java/build", "OpenWeatherApiServer"],
-        mcp_command=["java", "-cp", "mcp-server/openweather/java/build", "OpenWeatherMcpServer"],
-        build_commands=[["make", "build-java-api-openweather"], ["make", "build-java-mcp-openweather"]],
-        extra_env={},
-        resource_uri="openweather://service-overview",
-        prompt_name="current-weather-brief",
+        prompt_name="current_weather_brief",
         prompt_arguments={"query": "London,uk", "units": "metric"},
         tool_calls=[
             {"name": "get_current_weather", "arguments": {"query": "London,uk", "units": "metric", "lang": "en"}},
@@ -200,7 +182,10 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> int:
     args = parse_args()
-    config = TARGETS[(args.example, args.language)]
+    target_key = (args.example, args.language)
+    config = TARGETS.get(target_key)
+    if config is None:
+        raise McpClientError(f"No existe un target MCP para example={args.example} language={args.language}")
     external_base_url = resolve_external_base_url(config, args.base_url)
 
     for build_command in config.build_commands:

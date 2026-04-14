@@ -24,4 +24,3 @@
 - Date Python: [mcp-server/date/python/README.md](/Users/rafex/repository/github/rafex/mcp-example/mcp-server/date/python/README.md)
 - Date Java: [mcp-server/date/java/README.md](/Users/rafex/repository/github/rafex/mcp-example/mcp-server/date/java/README.md)
 - OpenWeather Python: [mcp-server/openweather/python/README.md](/Users/rafex/repository/github/rafex/mcp-example/mcp-server/openweather/python/README.md)
-- OpenWeather Java: [mcp-server/openweather/java/README.md](/Users/rafex/repository/github/rafex/mcp-example/mcp-server/openweather/java/README.md)

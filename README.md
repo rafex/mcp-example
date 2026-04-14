@@ -20,8 +20,12 @@ Cada ejemplo incluye:
 
 - un backend REST en Python
 - un backend REST en Java
-- un servidor MCP en Python
-- un servidor MCP en Java
+
+Los ejemplos MCP quedan así:
+
+- `hello`: MCP manual en Python y Java, más variante adicional `hello-fastmcp` en Python
+- `date`: MCP manual en Python y Java
+- `openweather`: MCP en Python usando FastMCP
 
 Además, `hello` incluye una variante MCP adicional en Python usando FastMCP:
 
@@ -31,13 +35,9 @@ Además, `hello` incluye un agente Java que usa el MCP `hello` a traves de Ether
 
 Todos implementan la misma idea base:
 
-- endpoint o herramienta `hello`
-- parámetro opcional `name`
-- parámetro opcional `lang`
-- respuesta JSON con saludo, hora UTC e IP
-- consulta de idiomas soportados
-- catálogo de recursos MCP
-- catálogo de prompts MCP
+- backend REST mínimo
+- wrapper MCP del backend
+- tools, resources y prompts para exponer la misma capacidad al cliente MCP
 
 ## Comportamiento de `hello`
 
@@ -243,11 +243,10 @@ Nota operativa:
     │       ├── hello_service.py
     │       └── server.py
     └── openweather/
-        ├── java/
-        │   ├── README.md
-        │   └── src/
         └── python/
             ├── README.md
+            ├── openweather_api_client.py
+            ├── requirements.txt
             └── server.py
 ```
 
@@ -352,12 +351,6 @@ Ejecutar MCP `openweather` en Python:
 OPENWEATHER_API_KEY="tu_api_key" OPENWEATHER_API_BASE_URL=http://127.0.0.1:8100 just run-python-mcp-openweather
 ```
 
-Ejecutar MCP `openweather` en Java:
-
-```bash
-OPENWEATHER_API_KEY="tu_api_key" OPENWEATHER_API_BASE_URL=http://127.0.0.1:8101 just run-java-mcp-openweather
-```
-
 Probar los MCP wrapper end-to-end:
 
 ```bash
@@ -366,7 +359,6 @@ Probar los MCP wrapper end-to-end:
 ./scripts/test-mcp-date-python.sh
 ./scripts/test-mcp-date-java.sh
 ./scripts/test-mcp-openweather-python.sh
-./scripts/test-mcp-openweather-java.sh
 ```
 
 Probar un MCP desde un cliente simple en la raíz y ver exactamente qué entrega:
@@ -381,7 +373,6 @@ uv run python main.py date python
 uv run python main.py date java
 uv run python main.py hello-fastmcp python --catalog-only --base-url http://127.0.0.1:8085
 OPENWEATHER_API_KEY="tu_api_key" uv run python main.py openweather python --catalog-only
-OPENWEATHER_API_KEY="tu_api_key" uv run python main.py openweather java --catalog-only
 ```
 
 O usando la interfaz principal del proyecto:
@@ -454,8 +445,8 @@ Hoy el ejemplo `openweather` funciona así:
 
 - el backend REST oculta `OPENWEATHER_API_KEY`
 - el backend REST envuelve Current Weather API 2.5 y One Call API 3.0 overview
-- el MCP Python envuelve al backend REST Python
-- el MCP Java envuelve al backend REST Java
+- el MCP `openweather` usa FastMCP en Python
+- el servidor FastMCP envuelve al backend REST Python
 - el cliente MCP ve tools, resources y prompts sin conocer la API externa
 
 ## Cliente MCP de prueba
@@ -487,7 +478,6 @@ uv run python main.py hello java --catalog-only
 uv run python main.py date python
 uv run python main.py date java
 OPENWEATHER_API_KEY="tu_api_key" uv run python main.py openweather python
-OPENWEATHER_API_KEY="tu_api_key" uv run python main.py openweather java
 ```
 
 Si ya tienes un backend levantado, por ejemplo el gateway Nginx en `http://127.0.0.1:8085`, puedes reutilizarlo con `--base-url` y el cliente no arrancará un backend aislado.

@@ -49,12 +49,6 @@ run-java-mcp-date:
 run-python-mcp-openweather:
     make run-python-mcp-openweather
 
-build-java-mcp-openweather:
-    make build-java-mcp-openweather
-
-run-java-mcp-openweather:
-    make run-java-mcp-openweather
-
 setup-mcp-client:
     make setup-mcp-client
 
