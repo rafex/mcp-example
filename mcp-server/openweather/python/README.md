@@ -1,50 +1,25 @@
-# MCP OpenWeather FastMCP Python
+# MCP OpenWeather Python
 
-Servidor MCP `openweather` en Python usando FastMCP, el SDK oficial de MCP para Python.
+Servidor MCP manual en Python que envuelve el backend REST `api-openweather` Python.
 
-Este ejemplo es deliberadamente distinto a `hello` y `date`: aquí el repositorio muestra la variante basada en SDK en lugar de una implementación manual.
-
-## Qué expone
-
-### Tools
+## Tools
 
 - `get_current_weather`
 - `get_weather_overview`
 
-### Resources
+## Resources
 
 - `openweather://service-overview`
 - `openweather://unit-reference`
 
-### Prompts
+## Prompts
 
-FastMCP publica estos prompts desde funciones Python:
-
-- `current_weather_brief`
-- `weather_overview_brief`
-
-## Dependencia
-
-FastMCP forma parte del paquete oficial `mcp` para Python:
-
-```bash
-python3 -m pip install -r mcp-server/openweather/python/requirements.txt
-```
+- `current-weather-brief`
+- `weather-overview-brief`
 
 ## Variables de entorno
 
 - `OPENWEATHER_API_BASE_URL` opcional, default `http://127.0.0.1:8100`
-
-## Arquitectura
-
-El servidor MCP no llama OpenWeatherMap directamente.
-
-Actúa como wrapper del backend REST `api-openweather`:
-
-- `get_current_weather` llama `GET /openweather/current`
-- `get_weather_overview` llama `GET /openweather/overview`
-- los resources leen `GET /openweather/resources/...`
-- los prompts reutilizan `GET /openweather/prompts/...`
 
 ## Ejemplo
 

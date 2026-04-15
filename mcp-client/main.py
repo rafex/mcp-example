@@ -134,11 +134,47 @@ TARGETS: dict[tuple[str, str], TargetConfig] = {
     ("openweather", "python"): TargetConfig(
         example="openweather",
         language="python",
-        transport="sdk",
+        transport="manual",
         backend_port=18100,
         backend_env_key="OPENWEATHER_API_BASE_URL",
         backend_command=[SYSTEM_PYTHON, "backend/api-openweather/python/server.py"],
-        mcp_command=[str(VENV_PYTHON), "mcp-server/openweather/python/server.py"],
+        mcp_command=[SYSTEM_PYTHON, "mcp-server/openweather/python/server.py"],
+        build_commands=[],
+        extra_env={},
+        resource_uri="openweather://service-overview",
+        prompt_name="current-weather-brief",
+        prompt_arguments={"query": "London,uk", "units": "metric"},
+        tool_calls=[
+            {"name": "get_current_weather", "arguments": {"query": "London,uk", "units": "metric", "lang": "en"}},
+            {"name": "get_weather_overview", "arguments": {"query": "London,uk", "units": "metric"}},
+        ],
+    ),
+    ("openweather", "java"): TargetConfig(
+        example="openweather",
+        language="java",
+        transport="manual",
+        backend_port=18101,
+        backend_env_key="OPENWEATHER_API_BASE_URL",
+        backend_command=["java", "-cp", "backend/api-openweather/java/build", "OpenWeatherApiServer"],
+        mcp_command=["java", "-cp", "mcp-server/openweather/java/build", "OpenWeatherMcpServer"],
+        build_commands=[["make", "build-java-api-openweather"], ["make", "build-java-mcp-openweather"]],
+        extra_env={},
+        resource_uri="openweather://service-overview",
+        prompt_name="current-weather-brief",
+        prompt_arguments={"query": "London,uk", "units": "metric"},
+        tool_calls=[
+            {"name": "get_current_weather", "arguments": {"query": "London,uk", "units": "metric", "lang": "en"}},
+            {"name": "get_weather_overview", "arguments": {"query": "London,uk", "units": "metric"}},
+        ],
+    ),
+    ("openweather-fastmcp", "python"): TargetConfig(
+        example="openweather-fastmcp",
+        language="python",
+        transport="sdk",
+        backend_port=18102,
+        backend_env_key="OPENWEATHER_API_BASE_URL",
+        backend_command=[SYSTEM_PYTHON, "backend/api-openweather/python/server.py"],
+        mcp_command=[str(VENV_PYTHON), "mcp-server/openweather-fastmcp/python/server.py"],
         build_commands=[],
         extra_env={},
         resource_uri="openweather://service-overview",
@@ -160,7 +196,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Cliente MCP para probar todos los ejemplos del repositorio."
     )
-    parser.add_argument("example", choices=["hello", "hello-fastmcp", "date", "openweather"])
+    parser.add_argument("example", choices=["hello", "hello-fastmcp", "date", "openweather", "openweather-fastmcp"])
     parser.add_argument("language", choices=["python", "java"])
     parser.add_argument(
         "--catalog-only",

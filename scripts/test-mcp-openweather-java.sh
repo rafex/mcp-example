@@ -4,10 +4,14 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-export OPENWEATHER_API_PORT=18100
+export OPENWEATHER_API_PORT=18101
 export OPENWEATHER_API_BASE_URL="http://127.0.0.1:${OPENWEATHER_API_PORT}"
 
-python3 backend/api-openweather/python/server.py >/tmp/mcp-example-openweather-python-api.log 2>&1 &
+mkdir -p backend/api-openweather/java/build mcp-server/openweather/java/build
+javac -d backend/api-openweather/java/build backend/api-openweather/java/src/*.java
+javac -d mcp-server/openweather/java/build mcp-server/openweather/java/src/*.java
+
+java -cp backend/api-openweather/java/build OpenWeatherApiServer >/tmp/mcp-example-openweather-java-api.log 2>&1 &
 BACKEND_PID=$!
 trap 'kill "$BACKEND_PID" 2>/dev/null || true' EXIT
 sleep 1
@@ -43,7 +47,7 @@ messages = [
     {"jsonrpc": "2.0", "id": 4, "method": "prompts/list", "params": {}},
 ]
 
-proc = subprocess.Popen(["python3", "mcp-server/openweather/python/server.py"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=sys.stderr)
+proc = subprocess.Popen(["java", "-cp", "mcp-server/openweather/java/build", "OpenWeatherMcpServer"], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=sys.stderr)
 try:
     assert proc.stdin and proc.stdout
     for message in messages:
