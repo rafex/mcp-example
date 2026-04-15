@@ -3,18 +3,7 @@
 set -euo pipefail
 
 cd "$(dirname "$0")/.."
-
-export OPENWEATHER_API_PORT=18101
-export OPENWEATHER_API_BASE_URL="http://127.0.0.1:${OPENWEATHER_API_PORT}"
-
-mkdir -p backend/api-openweather/java/build mcp-server/openweather/java/build
-javac -d backend/api-openweather/java/build backend/api-openweather/java/src/*.java
 javac -d mcp-server/openweather/java/build mcp-server/openweather/java/src/*.java
-
-java -cp backend/api-openweather/java/build OpenWeatherApiServer >/tmp/mcp-example-openweather-java-api.log 2>&1 &
-BACKEND_PID=$!
-trap 'kill "$BACKEND_PID" 2>/dev/null || true' EXIT
-sleep 1
 
 python3 - <<'PY'
 import json

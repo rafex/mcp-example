@@ -14,7 +14,7 @@ Hoy el repositorio tiene tres casos de estudio:
 
 - `hello`: saludo localizado sin autenticación
 - `date`: consulta de hora por ubicación con autenticación HTTP escondida detrás del MCP
-- `openweather`: wrapper de OpenWeatherMap para clima actual y weather overview
+- `openweather`: acceso directo a OpenWeatherMap para clima actual y weather overview
 
 Cada ejemplo incluye:
 
@@ -131,17 +131,7 @@ Los tools actuales del MCP `date` son:
 
 ## Comportamiento de `openweather`
 
-Rutas REST:
-
-- `GET /openweather/current`
-- `GET /openweather/overview`
-- `GET /openweather/resources`
-- `GET /openweather/resources/{name}`
-- `GET /openweather/prompts`
-- `GET /openweather/prompts/{name}`
-- `OPTIONS` para todas esas rutas
-
-Este ejemplo usa OpenWeatherMap por detrás:
+Los MCP `openweather` usan OpenWeatherMap directamente:
 
 - Current Weather API 2.5
 - Geocoding API
@@ -154,7 +144,7 @@ Variables clave:
 
 Nota operativa:
 
-- `GET /openweather/overview` depende de One Call API 3.0 overview
+- `get_weather_overview` depende de One Call API 3.0 overview
 - en OpenWeatherMap esa capacidad puede requerir la suscripción correspondiente, además de una API key válida
 
 ## Estructura actual
@@ -355,19 +345,19 @@ just run-java-mcp-date
 Ejecutar MCP `openweather` en Python:
 
 ```bash
-OPENWEATHER_API_KEY="tu_api_key" OPENWEATHER_API_BASE_URL=http://127.0.0.1:8100 just run-python-mcp-openweather
+OPENWEATHER_API_KEY="tu_api_key" just run-python-mcp-openweather
 ```
 
 Ejecutar MCP `openweather-fastmcp` en Python:
 
 ```bash
-OPENWEATHER_API_KEY="tu_api_key" OPENWEATHER_API_BASE_URL=http://127.0.0.1:8100 just run-python-mcp-openweather-fastmcp
+OPENWEATHER_API_KEY="tu_api_key" just run-python-mcp-openweather-fastmcp
 ```
 
 Ejecutar MCP `openweather` en Java:
 
 ```bash
-OPENWEATHER_API_KEY="tu_api_key" OPENWEATHER_API_BASE_URL=http://127.0.0.1:8101 just run-java-mcp-openweather
+OPENWEATHER_API_KEY="tu_api_key" just run-java-mcp-openweather
 ```
 
 Probar los MCP wrapper end-to-end:
@@ -465,11 +455,9 @@ Hoy el ejemplo `date` funciona así:
 
 Hoy el ejemplo `openweather` funciona así:
 
-- el backend REST oculta `OPENWEATHER_API_KEY`
-- el backend REST envuelve Current Weather API 2.5 y One Call API 3.0 overview
-- el MCP Python manual envuelve al backend REST Python
-- `openweather-fastmcp` envuelve el mismo backend REST Python, pero usando FastMCP
-- el MCP Java manual envuelve al backend REST Java
+- el MCP Python manual habla directo con OpenWeatherMap
+- `openweather-fastmcp` habla directo con OpenWeatherMap usando FastMCP
+- el MCP Java manual habla directo con OpenWeatherMap
 - el cliente MCP ve tools, resources y prompts sin conocer la API externa
 
 ## Cliente MCP de prueba
@@ -482,7 +470,7 @@ Este cliente:
 - crea su propia `.venv`
 - depende del SDK oficial Python de MCP
 - compila Java cuando corresponde
-- levanta el backend REST del ejemplo elegido en un puerto aislado
+- levanta el backend REST del ejemplo elegido en un puerto aislado cuando el ejemplo lo requiere
 - arranca el servidor MCP correspondiente
 - envía `initialize`
 - lista `tools`, `resources` y `prompts`
@@ -506,6 +494,8 @@ OPENWEATHER_API_KEY="tu_api_key" uv run python main.py openweather-fastmcp pytho
 ```
 
 Si ya tienes un backend levantado, por ejemplo el gateway Nginx en `http://127.0.0.1:8085`, puedes reutilizarlo con `--base-url` y el cliente no arrancará un backend aislado.
+
+Para `openweather` y `openweather-fastmcp`, el cliente no necesita backend local porque ambos MCP hablan directo con OpenWeatherMap.
 
 ## Documentación MCP
 

@@ -135,9 +135,9 @@ TARGETS: dict[tuple[str, str], TargetConfig] = {
         example="openweather",
         language="python",
         transport="manual",
-        backend_port=18100,
-        backend_env_key="OPENWEATHER_API_BASE_URL",
-        backend_command=[SYSTEM_PYTHON, "backend/api-openweather/python/server.py"],
+        backend_port=0,
+        backend_env_key="OPENWEATHER_BASE_URL",
+        backend_command=[],
         mcp_command=[SYSTEM_PYTHON, "mcp-server/openweather/python/server.py"],
         build_commands=[],
         extra_env={},
@@ -153,11 +153,11 @@ TARGETS: dict[tuple[str, str], TargetConfig] = {
         example="openweather",
         language="java",
         transport="manual",
-        backend_port=18101,
-        backend_env_key="OPENWEATHER_API_BASE_URL",
-        backend_command=["java", "-cp", "backend/api-openweather/java/build", "OpenWeatherApiServer"],
+        backend_port=0,
+        backend_env_key="OPENWEATHER_BASE_URL",
+        backend_command=[],
         mcp_command=["java", "-cp", "mcp-server/openweather/java/build", "OpenWeatherMcpServer"],
-        build_commands=[["make", "build-java-api-openweather"], ["make", "build-java-mcp-openweather"]],
+        build_commands=[["make", "build-java-mcp-openweather"]],
         extra_env={},
         resource_uri="openweather://service-overview",
         prompt_name="current-weather-brief",
@@ -171,9 +171,9 @@ TARGETS: dict[tuple[str, str], TargetConfig] = {
         example="openweather-fastmcp",
         language="python",
         transport="sdk",
-        backend_port=18102,
-        backend_env_key="OPENWEATHER_API_BASE_URL",
-        backend_command=[SYSTEM_PYTHON, "backend/api-openweather/python/server.py"],
+        backend_port=0,
+        backend_env_key="OPENWEATHER_BASE_URL",
+        backend_command=[],
         mcp_command=[str(VENV_PYTHON), "mcp-server/openweather-fastmcp/python/server.py"],
         build_commands=[],
         extra_env={},
@@ -229,7 +229,7 @@ def main() -> int:
 
     env = build_env(config, external_base_url)
     backend = None
-    if external_base_url is None:
+    if external_base_url is None and config.backend_command:
         backend = start_process(
             config.backend_command,
             env,
@@ -237,7 +237,7 @@ def main() -> int:
         )
         time.sleep(args.startup_wait)
 
-    print_header(config, env[config.backend_env_key], external_base_url is None)
+    print_header(config, env[config.backend_env_key], external_base_url is None and bool(config.backend_command))
 
     try:
         if config.transport == "manual":
@@ -260,15 +260,16 @@ def resolve_external_base_url(config: TargetConfig, cli_base_url: str | None) ->
 def build_env(config: TargetConfig, external_base_url: str | None) -> dict[str, str]:
     env = os.environ.copy()
     env["PYTHONUNBUFFERED"] = "1"
-    if external_base_url is None:
+    if external_base_url is None and config.backend_command:
         backend_port = reserve_local_port()
         if config.backend_env_key == "HELLO_API_BASE_URL":
             env["HELLO_API_PORT"] = str(backend_port)
         if config.backend_env_key == "DATE_API_BASE_URL":
             env["DATE_API_PORT"] = str(backend_port)
-        if config.backend_env_key == "OPENWEATHER_API_BASE_URL":
-            env["OPENWEATHER_API_PORT"] = str(backend_port)
         env[config.backend_env_key] = f"http://{HOST}:{backend_port}"
+    elif external_base_url is None:
+        if config.backend_env_key == "OPENWEATHER_BASE_URL":
+            env[config.backend_env_key] = "https://api.openweathermap.org"
     else:
         env[config.backend_env_key] = external_base_url
     env.update(config.extra_env)

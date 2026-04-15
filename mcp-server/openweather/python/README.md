@@ -1,6 +1,6 @@
 # MCP OpenWeather Python
 
-Servidor MCP manual en Python que envuelve el backend REST `api-openweather` Python.
+Servidor MCP manual en Python que habla directo con OpenWeatherMap.
 
 ## Tools
 
@@ -19,11 +19,11 @@ Servidor MCP manual en Python que envuelve el backend REST `api-openweather` Pyt
 
 ## Variables de entorno
 
-- `OPENWEATHER_API_BASE_URL` opcional, default `http://127.0.0.1:8100`
+- `OPENWEATHER_API_KEY` obligatorio
+- `OPENWEATHER_BASE_URL` opcional, default `https://api.openweathermap.org`
 
 ## Ejemplo
 
 ```bash
-OPENWEATHER_API_KEY=tu_api_key just run-python-api-openweather
-OPENWEATHER_API_BASE_URL=http://127.0.0.1:8100 just run-python-mcp-openweather
+OPENWEATHER_API_KEY=tu_api_key just run-python-mcp-openweather
 ```

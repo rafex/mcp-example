@@ -1,17 +1,22 @@
 from __future__ import annotations
 
 import json
-import os
 import sys
 from typing import Any
-from urllib.error import HTTPError, URLError
-from urllib.parse import urlencode
-from urllib.request import Request, urlopen
+
+from openweather_service import (
+    build_prompt_details_payload,
+    build_prompts_payload,
+    build_resource_contents_payload,
+    build_resources_payload,
+    build_tools_payload,
+    fetch_current_weather,
+    fetch_weather_overview,
+)
 
 
 SERVER_INFO = {"name": "openweather-python-mcp", "version": "0.1.0"}
 PROTOCOL_VERSION = "2024-11-05"
-OPENWEATHER_API_BASE_URL = os.getenv("OPENWEATHER_API_BASE_URL", "http://127.0.0.1:8100")
 
 
 def main() -> None:
@@ -59,68 +64,37 @@ def handle_request(request: dict[str, Any]) -> dict[str, Any] | None:
     if method == "initialize":
         return success(request_id, {"protocolVersion": PROTOCOL_VERSION, "capabilities": {"tools": {}, "resources": {}, "prompts": {}}, "serverInfo": SERVER_INFO})
     if method == "tools/list":
-        return success(
-            request_id,
-            {
-                "tools": [
-                    {
-                        "name": "get_current_weather",
-                        "description": "Consulta el clima actual usando OpenWeather Current Weather API 2.5.",
-                        "inputSchema": {
-                            "type": "object",
-                            "properties": {
-                                "query": {"type": "string", "description": "Ciudad o ciudad,country code. Ejemplo: London,uk"},
-                                "units": {"type": "string", "description": "standard, metric o imperial"},
-                                "lang": {"type": "string", "description": "Idioma del campo weather.description"},
-                            },
-                            "required": ["query"],
-                            "additionalProperties": False,
-                        },
-                    },
-                    {
-                        "name": "get_weather_overview",
-                        "description": "Obtiene un resumen legible usando One Call API 3.0 overview.",
-                        "inputSchema": {
-                            "type": "object",
-                            "properties": {
-                                "query": {"type": "string", "description": "Ciudad o ciudad,country code. Ejemplo: London,uk"},
-                                "units": {"type": "string", "description": "standard, metric o imperial"},
-                                "date": {"type": "string", "description": "Fecha opcional YYYY-MM-DD, hoy o mañana"},
-                            },
-                            "required": ["query"],
-                            "additionalProperties": False,
-                        },
-                    },
-                ]
-            },
-        )
+        return success(request_id, build_tools_payload())
     if method == "tools/call":
         params = request.get("params", {})
         name = params.get("name")
         arguments = params.get("arguments", {})
         if name == "get_current_weather":
-            payload = call_api_json("/openweather/current", {"q": arguments.get("query"), "units": arguments.get("units"), "lang": arguments.get("lang")})
+            payload = fetch_current_weather(arguments.get("query"), arguments.get("units"), arguments.get("lang"))
             return tool_result(request_id, payload)
         if name == "get_weather_overview":
-            payload = call_api_json("/openweather/overview", {"q": arguments.get("query"), "units": arguments.get("units"), "date": arguments.get("date")})
+            payload = fetch_weather_overview(arguments.get("query"), arguments.get("units"), arguments.get("date"))
             return tool_result(request_id, payload)
         return error(request_id, -32602, f"Herramienta no soportada: {name}")
     if method == "resources/list":
-        return success(request_id, call_api_json("/openweather/resources"))
+        return success(request_id, build_resources_payload())
     if method == "resources/read":
         uri = request.get("params", {}).get("uri")
-        path = resource_path(uri)
-        if path is None:
+        try:
+            payload = build_resource_contents_payload(uri)
+        except KeyError:
             return error(request_id, -32602, f"Resource no soportado: {uri}")
-        return success(request_id, call_api_json(path))
+        return success(request_id, payload)
     if method == "prompts/list":
-        return success(request_id, call_api_json("/openweather/prompts"))
+        return success(request_id, build_prompts_payload())
     if method == "prompts/get":
         params = request.get("params", {})
-        path = prompt_path(params.get("name"), params.get("arguments", {}))
-        if path is None:
+        arguments = params.get("arguments", {})
+        try:
+            payload = build_prompt_details_payload(params.get("name"), arguments.get("query"), arguments.get("units"))
+        except KeyError:
             return error(request_id, -32602, f"Prompt no soportado: {params.get('name')}")
-        return success(request_id, call_api_json(path))
+        return success(request_id, payload)
     return error(request_id, -32601, f"Método no encontrado: {method}")
 
 
@@ -134,40 +108,6 @@ def success(request_id: Any, result: dict[str, Any]) -> dict[str, Any]:
 
 def error(request_id: Any, code: int, message: str) -> dict[str, Any]:
     return {"jsonrpc": "2.0", "id": request_id, "error": {"code": code, "message": message}}
-
-
-def call_api_json(path: str, query_params: dict[str, Any] | None = None) -> dict[str, Any]:
-    query = urlencode({key: value for key, value in (query_params or {}).items() if value})
-    url = f"{OPENWEATHER_API_BASE_URL}{path}"
-    if query:
-        url = f"{url}?{query}"
-    request = Request(url, method="GET")
-    try:
-        with urlopen(request, timeout=10) as response:
-            return json.loads(response.read().decode("utf-8"))
-    except HTTPError as exception:
-        detail = exception.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"OpenWeather backend responded with HTTP {exception.code}: {detail}") from exception
-    except URLError as exception:
-        raise RuntimeError(f"OpenWeather backend unavailable at {OPENWEATHER_API_BASE_URL}: {exception.reason}") from exception
-
-
-def resource_path(resource_uri: str | None) -> str | None:
-    if resource_uri == "openweather://service-overview":
-        return "/openweather/resources/service-overview"
-    if resource_uri == "openweather://unit-reference":
-        return "/openweather/resources/unit-reference"
-    return None
-
-
-def prompt_path(prompt_name: str | None, arguments: dict[str, Any]) -> str | None:
-    if prompt_name == "current-weather-brief":
-        query = urlencode({key: value for key, value in {"query": arguments.get("query"), "units": arguments.get("units")}.items() if value})
-        return f"/openweather/prompts/current-weather-brief?{query}" if query else "/openweather/prompts/current-weather-brief"
-    if prompt_name == "weather-overview-brief":
-        query = urlencode({key: value for key, value in {"query": arguments.get("query"), "units": arguments.get("units")}.items() if value})
-        return f"/openweather/prompts/weather-overview-brief?{query}" if query else "/openweather/prompts/weather-overview-brief"
-    return None
 
 
 if __name__ == "__main__":

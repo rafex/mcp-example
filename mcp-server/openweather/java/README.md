@@ -1,6 +1,6 @@
 # MCP OpenWeather Java
 
-Servidor MCP manual en Java que envuelve el backend REST `api-openweather` Java.
+Servidor MCP manual en Java que habla directo con OpenWeatherMap.
 
 ## Tools
 
@@ -19,11 +19,11 @@ Servidor MCP manual en Java que envuelve el backend REST `api-openweather` Java.
 
 ## Variables de entorno
 
-- `OPENWEATHER_API_BASE_URL` opcional, default `http://127.0.0.1:8101`
+- `OPENWEATHER_API_KEY` obligatorio
+- `OPENWEATHER_BASE_URL` opcional, default `https://api.openweathermap.org`
 
 ## Ejemplo
 
 ```bash
-OPENWEATHER_API_KEY=tu_api_key just run-java-api-openweather
-OPENWEATHER_API_BASE_URL=http://127.0.0.1:8101 just run-java-mcp-openweather
+OPENWEATHER_API_KEY=tu_api_key just run-java-mcp-openweather
 ```

@@ -19,7 +19,7 @@ Este proyecto sirve para inspeccionar y probar:
 
 El cliente:
 
-- levanta el backend REST necesario en un puerto aislado
+- levanta el backend REST necesario en un puerto aislado cuando el ejemplo lo requiere
 - compila Java cuando hace falta
 - arranca el servidor MCP correspondiente
 - muestra `tools/list`, `resources/list` y `prompts/list`
@@ -98,6 +98,7 @@ Eso permite probar tanto:
 
 - implementaciones didácticas sin SDK
 - implementaciones basadas en FastMCP
+- ejemplos que hablan directo con una API pública sin backend local, como `openweather`
 
 ## Archivos principales
 

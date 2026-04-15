@@ -4,14 +4,6 @@ set -euo pipefail
 
 cd "$(dirname "$0")/.."
 
-export OPENWEATHER_API_PORT=18100
-export OPENWEATHER_API_BASE_URL="http://127.0.0.1:${OPENWEATHER_API_PORT}"
-
-python3 backend/api-openweather/python/server.py >/tmp/mcp-example-openweather-python-api.log 2>&1 &
-BACKEND_PID=$!
-trap 'kill "$BACKEND_PID" 2>/dev/null || true' EXIT
-sleep 1
-
 python3 - <<'PY'
 import json
 import subprocess

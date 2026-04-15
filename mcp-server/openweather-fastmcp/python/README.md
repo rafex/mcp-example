@@ -1,6 +1,6 @@
 # MCP OpenWeather FastMCP Python
 
-Servidor MCP `openweather-fastmcp` en Python usando FastMCP, el SDK oficial de MCP para Python.
+Servidor MCP `openweather-fastmcp` en Python usando FastMCP, el SDK oficial de MCP para Python, hablando directo con OpenWeatherMap.
 
 Este ejemplo existe para contrastar con `mcp-server/openweather/python`, que implementa MCP manualmente sobre `stdio`.
 
@@ -30,6 +30,5 @@ python3 -m pip install -r mcp-server/openweather-fastmcp/python/requirements.txt
 ## Ejemplo
 
 ```bash
-OPENWEATHER_API_KEY=tu_api_key just run-python-api-openweather
-OPENWEATHER_API_BASE_URL=http://127.0.0.1:8100 just run-python-mcp-openweather-fastmcp
+OPENWEATHER_API_KEY=tu_api_key OPENWEATHER_BASE_URL=https://api.openweathermap.org just run-python-mcp-openweather-fastmcp
 ```
